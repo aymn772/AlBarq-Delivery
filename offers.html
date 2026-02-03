@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>العروض الحصرية | البرق للتوصيل</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        'barq-blue': '#0057FF', 
+                        'barq-orange': '#FF6B00', 
+                        'barq-dark': '#0F172A' 
+                    },
+                    fontFamily: { cairo: ['Cairo', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * { font-family: 'Cairo', sans-serif !important; }
+        
+        /* تأثيرات الهيدر الزجاجي الاحترافي */
+        .glass-header { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+            transition: all 0.4s ease;
+        }
+
+        /* روابط التنقل في الوسط */
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 3px;
+            bottom: -6px;
+            right: 0;
+            background-color: #FF6B00;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .nav-link:hover::after { width: 100%; }
+        .nav-link:hover { color: #FF6B00; }
+
+        .nav-active {
+            color: #FF6B00 !important;
+            font-weight: 900;
+        }
+        .nav-active::after { width: 100%; }
+
+        /* تنسيق البطاقات */
+        .offer-card { border-radius: 45px; overflow: hidden; transition: all 0.4s ease; height: 100%; display: flex; flex-direction: column; box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.1); }
+        .offer-card:hover { transform: translateY(-12px); box-shadow: 0 30px 50px -15px rgba(255, 107, 0, 0.2); }
+        .img-container { height: 230px; position: relative; overflow: hidden; }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .offer-card:hover .img-container img { transform: scale(1.1); }
+        
+        #cart-drawer { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2500; }
+        .btn-order { background-color: #0F172A; color: white; transition: all 0.3s; }
+        .btn-order:hover { background-color: #FF6B00; transform: scale(1.02); }
+    </style>
+</head>
+<body class="bg-white text-gray-900 antialiased font-cairo text-right">
+
+    <header class="fixed top-0 left-0 right-0 z-[2000] glass-header">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            
+            <div class="flex-shrink-0">
+                <a href="index.html" class="flex items-center gap-1 group">
+                    <span class="text-barq-blue font-black text-2xl italic transition-transform group-hover:-translate-y-1">البرق</span>
+                    <span class="text-barq-orange font-black text-2xl italic transition-transform group-hover:translate-y-1">للتوصيل</span>
+                </a>
+            </div>
+    
+            <nav class="hidden md:flex items-center gap-10 font-bold text-gray-700">
+                <a href="index.html" class="nav-link">الرئيسية</a>
+                <a href="restaurants.html" class="nav-link">المطاعم</a>
+                <a href="offers.html" class="nav-link nav-active">العروض 🔥</a>
+                <a href="about.html" class="nav-link">من نحن</a>
+            </nav>
+    
+            <div class="flex items-center gap-3">
+                <button onclick="openCart()" class="p-3 bg-white border border-gray-100 rounded-2xl relative hover:shadow-md hover:border-barq-orange transition-all active:scale-90 group">
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-barq-orange text-white text-[11px] w-6 h-6 flex items-center justify-center rounded-full font-black shadow-lg hidden">0</span>
+                    <span class="text-2xl group-hover:rotate-12 transition-transform inline-block">🛒</span>
+                </button>
+                
+                <button onclick="toggleMobileMenu()" class="md:hidden p-3 bg-gray-50 rounded-2xl text-barq-blue text-2xl">
+                    ☰
+                </button>
+            </div>
+        </div>
+    
+        <div id="mobile-menu" class="hidden md:hidden bg-white/95 backdrop-blur-lg border-t border-gray-100 p-6 space-y-4 shadow-2xl">
+            <a href="index.html" class="block font-black text-gray-700 hover:text-barq-orange">الرئيسية</a>
+            <a href="restaurants.html" class="block font-black text-gray-700 hover:text-barq-orange">المطاعم</a>
+            <a href="offers.html" class="block font-black text-barq-orange">العروض 🔥</a>
+            <a href="about.html" class="block font-black text-gray-700 hover:text-barq-orange">من نحن</a>
+        </div>
+    </header>
+
+    <main class="pt-32 pb-20 container mx-auto px-4">
+        <div class="text-center mb-16">
+            <span class="bg-orange-100 text-barq-orange px-6 py-2 rounded-full text-sm font-bold italic">⚡ توفير أكثر مع البرق للتوصيل اليمن</span>
+            <h1 class="text-5xl font-black text-gray-900 mt-6 mb-2">أقوى العروض الحصرية</h1>
+            <p class="text-gray-500 font-bold italic">وفر أموالك واستمتع بأشهى الوجبات</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-[1440px] mx-auto">
+            
+            <div class="offer-card bg-white border border-gray-100">
+                <div class="img-container">
+                    <span class="absolute top-5 right-6 bg-yellow-400 text-black text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">عرض الغداء</span>
+                    <img src="https://images.unsplash.com/photo-1541518763669-27fef04b14ea?auto=format&fit=crop&q=80&w=600" alt="وجبة يمنية">
+                </div>
+                <div class="p-8 text-center flex-1 flex flex-col">
+                    <h3 class="text-2xl font-black text-barq-blue mb-2">مطعم الشيباني</h3>
+                    <p class="text-gray-400 font-bold text-xs mb-6 italic">نفر سلته برمة + ملوج حار + سحاوق جبن</p>
+                    <div class="mt-auto">
+                        <p class="text-barq-orange font-black text-3xl mb-6">3500 ريال</p>
+                        <button onclick="addToCart('وجبة الشيباني الملكية', 'الشيباني', 3500, 4200)" class="w-full btn-order py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 italic">إضافة للسلة 🛒</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="offer-card bg-white border border-gray-100">
+                <div class="img-container">
+                    <span class="absolute top-5 right-6 bg-green-400 text-white text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">الأكثر مبيعاً</span>
+                    <img src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&q=80&w=600" alt="برجر ميكس">
+                </div>
+                <div class="p-8 text-center flex-1 flex flex-col">
+                    <h3 class="text-2xl font-black text-barq-blue mb-2">رويال برجر</h3>
+                    <p class="text-gray-400 font-bold text-xs mb-6 italic">ميكس برجر عائلي + بطاطس + كولا 1 لتر</p>
+                    <div class="mt-auto">
+                        <p class="text-barq-orange font-black text-3xl mb-6">2800 ريال</p>
+                        <button onclick="addToCart('ميكس رويال العائلي', 'رويال برجر', 2800, 3500)" class="w-full btn-order py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 italic">إضافة للسلة 🛒</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="offer-card bg-white border border-gray-100">
+                <div class="img-container">
+                    <span class="absolute top-5 right-6 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">توفير إضافي</span>
+                    <img src="https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&q=80&w=600" alt="كريسبي دجاج">
+                </div>
+                <div class="p-8 text-center flex-1 flex flex-col">
+                    <h3 class="text-2xl font-black text-barq-blue mb-2">رويال برجر</h3>
+                    <p class="text-gray-400 font-bold text-xs mb-6 italic">2 برجر دجاج كريسي + بطاطس عائلي</p>
+                    <div class="mt-auto">
+                        <p class="text-barq-orange font-black text-3xl mb-6">3200 ريال</p>
+                        <button onclick="addToCart('2 برجر دجاج كريسبي', 'رويال برجر', 3200, 4000)" class="w-full btn-order py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 italic">إضافة للسلة 🛒</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="offer-card bg-white border-2 border-barq-orange">
+                <div class="img-container">
+                    <span class="absolute top-5 right-6 bg-barq-blue text-white text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">خصم 20% 🔥</span>
+                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=600" alt="فايف ستار">
+                </div>
+                <div class="p-8 text-center flex-1 flex flex-col">
+                    <h3 class="text-2xl font-black text-barq-blue mb-2">فايف ستار</h3>
+                    <p class="text-gray-400 font-bold text-xs mb-4 italic">برجر كلاسيك + بطاطس + كوكا كولا</p>
+                    <div class="mt-auto">
+                        <div class="flex flex-col items-center gap-1 mb-6">
+                            <span class="text-gray-400 line-through font-bold text-sm">3000 ريال</span>
+                            <div class="flex items-center gap-3">
+                                <div class="bg-blue-50 text-barq-blue px-2 py-1 rounded-lg text-[10px] font-black border border-blue-100 italic">باقي 3 أيام ⏳</div>
+                                <span class="text-barq-orange font-black text-3xl">2400 ريال</span>
+                            </div>
+                        </div>
+                        <button onclick="addToCart('عرض فايف ستار 20%', 'فايف ستار', 2400, 3000)" class="w-full bg-barq-blue text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 italic shadow-lg">اطلب العرض الآن 🛒</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="max-w-4xl mx-auto mt-24">
+            <div class="bg-barq-dark rounded-[55px] p-12 text-center border-b-[12px] border-barq-orange shadow-2xl">
+                <h2 class="text-barq-orange font-black text-3xl italic mb-6 underline underline-offset-8">للاستفسار والتواصل معنا</h2>
+                <p class="text-gray-400 font-bold mb-10 italic px-4">لأي ملاحظة أو استفسار بخصوص الطلبات، يسعدنا تواصلك معنا مباشرة عبر الواتساب.</p>
+                <a href="https://wa.me/967781110052" class="inline-flex items-center gap-4 bg-[#00E676] hover:bg-[#00c853] text-white px-14 py-5 rounded-[30px] font-black text-2xl transition-all shadow-xl active:scale-95">
+                    <span class="text-3xl">💬</span>
+                    <span>تواصل معنا عبر واتساب</span>
+                </a>
+                <p class="text-gray-600 mt-8 text-sm font-bold">رقم الإدارة: 772111598</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-12 text-center border-t border-gray-100 bg-gray-50">
+        <p class="text-barq-blue font-black text-xl italic italic">البرق للتوصيل اليمن</p>
+        <p class="text-gray-400 text-sm font-bold mt-2">صنعاء | جميع الحقوق محفوظة © 2026</p>
+    </footer>
+
+    <div id="cart-overlay" onclick="closeCart()" class="fixed inset-0 bg-black/60 z-[3000] hidden backdrop-blur-sm transition-opacity"></div>
+    <div id="cart-drawer" class="fixed top-0 left-0 h-full w-full max-w-[450px] bg-white transform -translate-x-full flex flex-col shadow-2xl border-r-[12px] border-barq-orange">
+        
+        <div class="p-7 bg-barq-blue text-white flex justify-between items-center shadow-lg">
+            <div class="flex items-center gap-3 text-right">
+                <span class="text-3xl">🛍️</span>
+                <h2 class="font-black text-2xl italic">سلّة التوفير</h2>
+            </div>
+            <button onclick="closeCart()" class="text-4xl leading-none px-2 hover:text-barq-orange">✕</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/50">
+            <div id="cart-items" class="space-y-4"></div>
+
+            <div class="bg-white p-7 rounded-[40px] shadow-sm border border-gray-100 space-y-6">
+                <div>
+                    <label class="block text-barq-blue font-black text-sm mb-2 mr-2">📱 رقم هاتف المستلم</label>
+                    <input type="tel" id="customer-phone" placeholder="7XXXXXXXX" class="w-full p-4 rounded-2xl border-2 text-center font-black text-xl outline-none focus:border-barq-orange bg-gray-50">
+                </div>
+                
+                <div>
+                    <label class="block text-barq-blue font-black text-sm mb-2 mr-2">🏠 عنوان التوصيل</label>
+                    <input type="text" id="manual-address" placeholder="الحي - الشارع - المعلم القريب" class="w-full p-4 rounded-2xl border-2 text-right font-bold text-sm outline-none focus:border-barq-orange bg-gray-50">
+                </div>
+                
+                <div>
+                    <label class="block text-barq-blue font-black text-sm mb-2 mr-2">📍 حدد موقعك (GPS)</label>
+                    <div id="map" style="height: 160px; border-radius: 25px;" class="border-2 border-white shadow-md my-2"></div>
+                    <input type="hidden" id="location-coords">
+                </div>
+
+                <div>
+                    <label class="block text-barq-blue font-black text-sm mb-2 mr-2">💳 وسيلة الدفع</label>
+                    <select id="payment-method" class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold text-sm outline-none focus:border-barq-orange appearance-none text-right">
+                        <option value="نقد عند الاستلام (كاش)">نقد عند الاستلام (كاش) 💵</option>
+                        <option value="كريمي (ام فلوس)">كريمي (ام فلوس) 🏦</option>
+                        <option value="محفظة جوالي (YKB)">محفظة جوالي (YKB) 📱</option>
+                        <option value="محفظة بيس (Pace)">محفظة بيس (Pace) 💸</option>
+                        <option value="محفظة جيب (Pocket)">محفظة جيب (Pocket) 💳</option>
+                        <option value="محفظة فلوسك">محفظة فلوسك 💰</option>
+                        <option value="موبايل موني (بنك كاك)">موبايل موني 📲</option>
+                        <option value="محفظة يمن موني">يمن موني 🇾🇪</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8 bg-white border-t shadow-[0_-10px_25px_rgba(0,0,0,0.05)]">
+            <div class="flex justify-between items-center mb-8 font-black italic">
+                <span id="cart-total" class="text-4xl text-barq-blue">0 ريال</span>
+                <span class="text-gray-400 text-lg">الإجمالي:</span>
+            </div>
+            <button onclick="sendToWA()" class="w-full bg-[#25D366] text-white py-5 rounded-[28px] font-black text-2xl shadow-xl active:scale-95 transition-all">إتمام الطلب (واتساب) ✅</button>
+        </div>
+    </div>
+
+    <script>
+        let cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+        let map, marker;
+
+        function openCart() { 
+            document.getElementById('cart-drawer').classList.remove('-translate-x-full'); 
+            document.getElementById('cart-overlay').classList.remove('hidden'); 
+            if(!map) setTimeout(initMap, 300);
+        }
+        function closeCart() { 
+            document.getElementById('cart-drawer').classList.add('-translate-x-full'); 
+            document.getElementById('cart-overlay').classList.add('hidden'); 
+        }
+
+        function addToCart(name, restaurant, price, original) {
+            cart.push({ name, restaurant, price, original });
+            updateUI();
+            openCart();
+        }
+
+        function remove(index) { 
+            cart.splice(index, 1); 
+            updateUI(); 
+        }
+
+        function updateUI() {
+            localStorage.setItem('barq_cart', JSON.stringify(cart));
+            const container = document.getElementById('cart-items');
+            let total = 0;
+            container.innerHTML = cart.map((item, index) => {
+                total += item.price;
+                return `
+                <div class="bg-white p-5 rounded-3xl flex justify-between items-center shadow-sm border-r-[8px] border-barq-orange">
+                    <button onclick="remove(${index})" class="text-red-500 font-bold p-2 text-xl hover:bg-red-50 rounded-full transition-colors">✕</button>
+                    <div class="text-right">
+                        <p class="text-sm font-black text-gray-800">${item.name}</p>
+                        <p class="text-barq-orange text-xs font-bold">${item.price} ريال</p>
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('cart-total').innerText = total + " ريال";
+            document.getElementById('cart-count').innerText = cart.length;
+            document.getElementById('cart-count').classList.toggle('hidden', cart.length === 0);
+        }
+
+        function initMap() {
+            if (map) return;
+            map = L.map('map').setView([15.3694, 44.1910], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            marker = L.marker([15.3694, 44.1910], {draggable: true}).addTo(map);
+            
+            // تحديث الإحداثيات عند تحريك العلامة
+            marker.on('moveend', function(e) {
+                const pos = e.target.getLatLng();
+                document.getElementById('location-coords').value = pos.lat + "," + pos.lng;
+            });
+        }
+
+        function sendToWA() {
+            const phone = document.getElementById('customer-phone').value;
+            const address = document.getElementById('manual-address').value;
+            const payment = document.getElementById('payment-method').value;
+            const coords = document.getElementById('location-coords').value;
+            
+            if(!phone || cart.length === 0) return alert("يرجى إدخال رقم الهاتف واختيار عرض واحد.");
+            localStorage.setItem('saved_phone', phone);
+            
+            let totalAfter = 0, itemsTxt = "";
+            cart.forEach((item, i) => { 
+                itemsTxt += `${i+1}. ${item.name} (${item.restaurant})\n`; 
+                totalAfter += item.price; 
+            });
+            
+            let msg = `ارسل كلمة عروض\n\n*طلب عروض جديد - البرق للتوصيل* ⚡\n━━━━━━━━━━━━━━\n${itemsTxt}━━━━━━━━━━━━━━\n💰 *الإجمالي:* ${totalAfter} ريال\n━━━━━━━━━━━━━━\n📞 *هاتف:* ${phone}\n🏠 *العنوان:* ${address}\n💳 *الدفع:* ${payment}`;
+            
+            // الرابط المصحح للخريطة (0 بدلاً من 2)
+            if(coords) {
+                msg += `\n📍 *الموقع:* http://maps.google.com/maps?q=${coords}`;
+            }
+            
+            window.open(`https://wa.me/967781110052?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        window.onload = function() { 
+            updateUI(); 
+            const saved = localStorage.getItem('saved_phone'); 
+            if(saved) document.getElementById('customer-phone').value = saved; 
+        }
+    </script>
+</body>
+</html>

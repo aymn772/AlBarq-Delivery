@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>من نحن | البرق للتوصيل</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'barq-blue': '#0057FF',
+                        'barq-orange': '#FF6B00',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * { font-family: 'Cairo', sans-serif !important; }
+        
+        /* تأثيرات الهيدر الجديد */
+        .glass-header { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+            transition: all 0.4s ease;
+        }
+
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 3px;
+            bottom: -6px;
+            right: 0;
+            background-color: #FF6B00;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .nav-link:hover::after { width: 100%; }
+        .nav-link:hover { color: #FF6B00; }
+
+        /* تفعيل الخط تحت "من نحن" بشكل ثابت */
+        .nav-active {
+            color: #FF6B00 !important;
+            font-weight: 900;
+        }
+        .nav-active::after { 
+            width: 100% !important; 
+        }
+
+        .hero-pattern {
+            background-color: #0057FF;
+            background-image: radial-gradient(#ffffff 0.5px, transparent 0.5px);
+            background-size: 11px 11px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <header class="fixed top-0 left-0 right-0 z-[2000] glass-header">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            
+            <div class="flex-shrink-0">
+                <a href="index.html" class="flex items-center gap-1 group">
+                    <span class="text-barq-blue font-black text-2xl italic transition-transform group-hover:-translate-y-1">البرق</span>
+                    <span class="text-barq-orange font-black text-2xl italic transition-transform group-hover:translate-y-1">للتوصيل</span>
+                </a>
+            </div>
+    
+            <nav class="hidden md:flex items-center gap-10 font-bold text-gray-700">
+                <a href="index.html" class="nav-link">الرئيسية</a>
+                <a href="restaurants.html" class="nav-link">المطاعم</a>
+                <a href="offers.html" class="nav-link">العروض 🔥</a>
+                <a href="about.html" class="nav-link nav-active">من نحن</a>
+            </nav>
+    
+            <div class="flex items-center gap-3">
+                <button onclick="openCartDrawer()" class="p-3 bg-white border border-gray-100 rounded-2xl relative hover:shadow-md hover:border-barq-orange transition-all active:scale-90 group">
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-barq-orange text-white text-[11px] w-6 h-6 flex items-center justify-center rounded-full font-black shadow-lg hidden">0</span>
+                    <span class="text-2xl group-hover:rotate-12 transition-transform inline-block">🛒</span>
+                </button>
+                
+                <button onclick="toggleMobileMenu()" class="md:hidden p-3 bg-gray-50 rounded-2xl text-barq-blue text-2xl">
+                    ☰
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-20">
+        <section class="hero-pattern text-white py-24 px-4 text-center">
+            <div class="container mx-auto max-w-3xl">
+                <h1 class="text-4xl md:text-6xl font-black mb-6 italic">قصة البرق للتوصيل ⚡</h1>
+                <p class="text-xl font-bold opacity-90 leading-relaxed">
+                    بدأنا من قلب صنعاء بهدف واحد: أن نجعل وصول طلباتك أسرع من خيالك، وبجودة تليق بك.
+                </p>
+            </div>
+        </section>
+
+        <section class="py-20">
+            <div class="container mx-auto px-4">
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border-t-4 border-barq-orange text-center">
+                        <div class="text-5xl mb-6">🎯</div>
+                        <h3 class="text-2xl font-black mb-4 text-barq-blue italic">رؤيتنا</h3>
+                        <p class="text-gray-500 font-bold leading-relaxed">أن نكون الخيار الأول والأساسي لكل يمني يبحث عن السرعة والموثوقية في خدمات التوصيل.</p>
+                    </div>
+                    
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border-t-4 border-barq-blue text-center">
+                        <div class="text-5xl mb-6">🤝</div>
+                        <h3 class="text-2xl font-black mb-4 text-barq-blue italic">التزامنا</h3>
+                        <p class="text-gray-500 font-bold leading-relaxed">نلتزم بتوفير طاقم محترف من المناديب الذين يحرصون على وصول طلبك ساخناً وبحالة مثالية.</p>
+                    </div>
+
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border-t-4 border-barq-orange text-center">
+                        <div class="text-5xl mb-6">🏙️</div>
+                        <h3 class="text-2xl font-black mb-4 text-barq-blue italic">تغطيتنا</h3>
+                        <p class="text-gray-500 font-bold leading-relaxed">نغطي كافة أحياء ومديريات أمانة العاصمة صنعاء بانتشار واسع وسرعة فائقة.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-gray-900 py-16 text-white overflow-hidden relative">
+            <div class="container mx-auto px-4 relative z-10">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                    <div>
+                        <p class="text-4xl font-black text-barq-orange italic">+50</p>
+                        <p class="text-sm font-bold opacity-60">مطعم شريك</p>
+                    </div>
+                    <div>
+                        <p class="text-4xl font-black text-barq-orange italic">+10k</p>
+                        <p class="text-sm font-bold opacity-60">عميل سعيد</p>
+                    </div>
+                    <div>
+                        <p class="text-4xl font-black text-barq-orange italic">+20</p>
+                        <p class="text-sm font-bold opacity-60">مندوب محترف</p>
+                    </div>
+                    <div>
+                        <p class="text-4xl font-black text-barq-orange italic">24/7</p>
+                        <p class="text-sm font-bold opacity-60">دعم متواصل</p>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute top-0 right-0 text-white/5 text-9xl font-black italic select-none">BARQ</div>
+        </section>
+
+        <section class="py-24 text-center">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-black mb-8 italic text-barq-blue">هل لديك أي استفسار أو شكوى؟</h2>
+                <div class="flex flex-wrap justify-center gap-6">
+                    <a href="tel:772111598" class="bg-white border-2 border-barq-blue text-barq-blue px-10 py-4 rounded-2xl font-black hover:bg-barq-blue hover:text-white transition shadow-lg">
+                        اتصل بنا: 772111598
+                    </a>
+                    <a href="https://wa.me/967781110052" class="bg-[#25D366] text-white px-10 py-4 rounded-2xl font-black hover:scale-105 transition shadow-lg">
+                        مراسلة واتساب 💬
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white py-12 text-center border-t-2 border-gray-100">
+        <p class="font-black text-2xl mb-4 italic">البرق <span class="text-barq-orange">للتوصيل</span></p>
+        <p class="text-gray-400 font-bold italic mb-2">الأمانة - صنعاء - اليمن</p>
+        <p class="text-gray-300 text-xs">جميع الحقوق محفوظة &copy; 2026</p>
+    </footer>
+
+    <div id="cart-drawer" style="position: fixed; top: 0; left: 0; height: 100%; width: 100%; max-width: 350px; z-index: 1000; background: white; transform: translateX(-100%); transition: transform 0.3s ease-in-out;" class="shadow-2xl border-r-4 border-barq-orange">
+        <div class="p-6 bg-barq-blue text-white flex justify-between items-center">
+            <h2 class="font-black text-xl italic">السلة 🛍️</h2>
+            <button onclick="closeCartDrawer()" class="text-2xl font-black">✕</button>
+        </div>
+        <div class="p-10 text-center text-gray-400 font-bold italic">تصفح المطاعم لإضافة طلباتك</div>
+    </div>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+        function openCartDrawer() {
+            document.getElementById('cart-drawer').style.transform = 'translateX(0)';
+        }
+        function closeCartDrawer() {
+            document.getElementById('cart-drawer').style.transform = 'translateX(-100%)';
+        }
+    </script>
+</body>
+</html>
