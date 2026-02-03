@@ -442,7 +442,7 @@ function injectManualInputs() {
         drawerContainer.insertAdjacentHTML('afterbegin', html);
     }
 }
-// ==========================================// ==========================================
+// ==========================================// ===================// ==========================================
 // 7. إرسال الطلب عبر واتساب (النسخة الاحترافية الكاملة)
 // ==========================================
 function setupWhatsAppAction() {
@@ -467,7 +467,6 @@ function setupWhatsAppAction() {
         }
 
         // 3. تجهيز رابط الخريطة (GPS)
-        // تم تصحيح الرابط ليعمل بشكل مباشر وصحيح
         const mapLink = coords ? `https://www.google.com/maps?q=${coords}` : "لم يتم تحديد موقع GPS";
 
         // 4. بناء نص الرسالة
@@ -482,7 +481,7 @@ function setupWhatsAppAction() {
             let itemNote = "";
 
             // تطبيق الخصم برمجياً في الرسالة إذا كان الكوبون مفعل ومطعم فايف ستار
-            if (typeof isCouponApplied !== 'undefined' && isCouponApplied && item.restaurantName.includes("فايف ستار")) {
+            if (typeof isCouponApplied !== 'undefined' && isCouponApplied && item.restaurantName && item.restaurantName.includes("فايف ستار")) {
                 currentPrice = item.price * 0.8; // خصم 20%
                 itemNote = " (خصم 20% ✅)";
             }
@@ -491,11 +490,11 @@ function setupWhatsAppAction() {
             finalTotal += itemLineTotal;
 
             msg += `${i + 1}. *${item.name}*${itemNote}\n`;
-            msg += `   السعر: ${Math.round(currentPrice)} ريال [الكمية: ${item.quantity}]\n`;
+            msg += `   🏬 *المطعم:* ${item.restaurantName || "غير محدد"}\n`;
+            msg += `   💰 السعر: ${Math.round(currentPrice)} ريال [الكمية: ${item.quantity}]\n`;
+            msg += "------------------------------\n";
         });
 
-        msg += "------------------------------\n";
-        
         // إضافة سطر الكوبون في الرسالة إذا تم استخدامه
         if (typeof isCouponApplied !== 'undefined' && isCouponApplied) {
             msg += `🎁 *الكوبون المستخدم:* FIVE20\n`;
@@ -513,11 +512,13 @@ function setupWhatsAppAction() {
 
         msg += `🏠 *العنوان:* ${manualAddr}\n\n`;
         msg += `📍 *موقع الـ GPS:*\n${mapLink}\n\n`;
+        
+        msg += "📞 *أرقام الإدارة للتواصل:*\n";
+        msg += "1️⃣ 775185889\n2️⃣ 781110052\n3️⃣ 774245506\n4️⃣ 772111598\n\n";
         msg += "شكراً لاختياركم البرق للتوصيل ⚡";
 
-        // 5. فتح الواتساب (الإرسال للرقم الأول في مصفوفة الدعم)
-        // تنظيف الرقم من المسافات لضمان عمل الرابط
-        const targetNumber = supportNumbers[0].replace(/\s+/g, '');
+        // 5. فتح الواتساب (الإرسال للرقم الأول)
+        const targetNumber = "775185889"; // الرقم الأساسي لاستقبال الطلبات
         const whatsappUrl = `https://wa.me/967${targetNumber}?text=${encodeURIComponent(msg)}`;
         
         window.open(whatsappUrl, '_blank');
