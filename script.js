@@ -433,81 +433,63 @@ window.getCurrentLocation = function() {
     }
 };
 // ==========================================
-// 7. إرسال الطلب عبر واتساب (النسخة الذكية والنهائية المعدلة)
+// 7. إرسال الطلب عبر واتساب (النسخة الكاملة والنهائية)
 // ==========================================
 function setupWhatsAppAction() {
     const btn = document.getElementById('whatsapp-checkout');
     if (!btn) return;
 
     btn.onclick = function() {
+        // التحقق من وجود أصناف في السلة
         if (typeof cart === 'undefined' || cart.length === 0) {
             return alert("سلتك فارغة، فضلاً أضف وجباتك المفضلة أولاً! 🛒");
         }
         
-        // 1. قراءة البيانات من واجهة المستخدم
-        const phoneInput = document.getElementById('customer-phone');
-        let phone = phoneInput ? phoneInput.value.trim() : "";
-        
-        // جلب اسم المطعم المخزن في الحقل المخفي (الذي أضفناه في القسم 4)
+        // جلب اسم المطعم المختار من الحقل المخفي
         const restaurantName = document.getElementById('selected-restaurant-name').value || "غير محدد";
 
-        // 2. التحقق من رقم الهاتف
-        if (!phone || phone.length < 7) {
-            alert("يرجى إدخال رقم هاتف صحيح للتواصل! 📞");
-            if(phoneInput) phoneInput.focus();
-            return;
-        }
-
+        // جلب تفاصيل العنوان والموقع وطريقة الدفع
         const manualAddr = document.getElementById('manual-address')?.value.trim() || "غير محدد";
         const coords = document.getElementById('location-coords')?.value;
         const payment = document.getElementById('payment-method')?.value || "نقد عند الاستلام (كاش)";
 
-        // 3. تجهيز رابط الخريطة (تم تصحيح الرابط ليعمل مباشرة)
+        // تجهيز رابط الخريطة بشكل صحيح
         const mapLink = coords ? `https://www.google.com/maps?q=${coords}` : "لم يتم تحديد موقع GPS";
 
-        // 4. بناء نص الرسالة
+        // --- بناء نص الرسالة الكامل ---
         let msg = "🍱 *طلب جديد - البرق للتوصيل* ⚡\n";
-        msg += `*المطعم:* ${restaurantName}\n`; // إضافة اسم المطعم هنا
+        msg += `*المطعم:* ${restaurantName}\n`;
         msg += "------------------------------\n";
         
         let finalTotal = 0;
         cart.forEach((item, i) => {
-            let currentPrice = item.price;
-            let itemNote = "";
-
-            // تطبيق خصم الكوبون إذا كان مفعلاً لمطعم فايف ستار
-            if (window.isCouponApplied && item.restaurantName && item.restaurantName.includes("فايف ستار")) {
-                currentPrice = item.price * 0.8;
-                itemNote = " (خصم 20% ✅)";
-            }
-
-            const itemLineTotal = currentPrice * item.quantity;
+            const itemLineTotal = item.price * item.quantity;
             finalTotal += itemLineTotal;
 
-            msg += `${i + 1}. *${item.name}*${itemNote}\n`;
-            msg += `   💰 السعر: ${Math.round(currentPrice)} ريال [العدد: ${item.quantity}]\n`;
+            msg += `${i + 1}. *${item.name}*\n`;
+            msg += `   💰 السعر: ${Math.round(item.price)} ريال [العدد: ${item.quantity}]\n`;
         });
 
         msg += "------------------------------\n";
-        if (window.isCouponApplied) msg += `🎁 *الكوبون:* FIVE20\n`;
         msg += `💰 *الإجمالي النهائي:* ${Math.round(finalTotal)} ريال\n\n`;
-        msg += `📞 *رقم العميل:* ${phone}\n`;
-        msg += `💳 *الدفع:* ${payment}\n`;
-        msg += `🏠 *العنوان:* ${manualAddr}\n`;
-        msg += `📍 *الموقع:* \n${mapLink}\n\n`;
+        msg += `💳 *طريقة الدفع:* ${payment}\n`;
+        msg += `🏠 *العنوان الوصفي:* ${manualAddr}\n`;
+        msg += `📍 *موقع العميل (GPS):* \n${mapLink}\n\n`;
         
+        // أرقام الإدارة والدعم (كما كانت في كودك الأصلي)
         msg += "🟢 مسئول الطلبات: 775185889\n";
         msg += "🏢 الإدارة العامة: 772111598\n";
         msg += "🛠️ الدعم الفني: 774245506\n";
         msg += "☎️ استفسارات: 781110052\n\n";
         msg += "شكراً لاختياركم البرق للتوصيل ⚡";
 
-        // 5. فتح الواتساب
+        // رقم المستلم الرئيسي (مسئول الطلبات)
         const orderManager = "775185889"; 
+        
+        // فتح الواتساب وإرسال الرسالة
         window.open(`https://wa.me/967${orderManager}?text=${encodeURIComponent(msg)}`, '_blank');
     };
 }
-
 // ==========================================
 // 8. التحكم في السلة والتشغيل
 // ==========================================
