@@ -381,9 +381,8 @@ window.applyCoupon = function() {
 };
 
 
-//==================================/
 // ==========================================
-// 6. الخريطة وحقول الإدخال اليدوية
+// 6. الخريطة وإعدادات الموقع (تم حذف الحقن اليدوي لمنع التعارض)
 // ==========================================
 function initBarqMap() {
     const mapContainer = document.getElementById('map');
@@ -398,16 +397,16 @@ function initBarqMap() {
     
     marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
     
-    // تحديث الإحداثيات فوراً عند التحميل لأول مرة
-    document.getElementById('location-coords').value = `${defaultLat},${defaultLng}`;
+    // تحديث الإحداثيات فوراً عند التحميل
+    const coordsInput = document.getElementById('location-coords');
+    if (coordsInput) coordsInput.value = `${defaultLat},${defaultLng}`;
 
     marker.on('dragend', () => {
         const pos = marker.getLatLng();
-        document.getElementById('location-coords').value = `${pos.lat},${pos.lng}`;
+        if (coordsInput) coordsInput.value = `${pos.lat},${pos.lng}`;
     });
 }
 
-// دالة تحديد الموقع عبر الـ GPS (التي سألت عنها)
 window.getCurrentLocation = function() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
@@ -415,67 +414,48 @@ window.getCurrentLocation = function() {
             const lng = position.coords.longitude;
             
             if (map && marker) {
-                map.setView([lat, lng], 17); // زووم قريب للموقع
+                map.setView([lat, lng], 17);
                 marker.setLatLng([lat, lng]);
                 document.getElementById('location-coords').value = `${lat},${lng}`;
             }
         }, () => {
-            alert("يرجى تفعيل الـ GPS في هاتفك للسماح بتحديد موقعك تلقائياً 🎯");
+            alert("يرجى تفعيل الـ GPS في هاتفك لتحديد موقعك تلقائياً 🎯");
         });
     } else {
         alert("متصفحك لا يدعم خاصية تحديد الموقع.");
     }
 };
 
-function injectManualInputs() {
-    const drawerContainer = document.querySelector('#cart-drawer .bg-white.p-4.rounded-3xl') || 
-                            document.querySelector('#cart-drawer .bg-white.p-4.rounded-2xl');
-    
-    if (drawerContainer && !document.getElementById('customer-phone')) {
-        const html = `
-            <div id="manual-fields" class="mb-4 border-b pb-4">
-                <h3 class="font-black text-sm mb-2 text-barq-blue italic text-right">📱 رقم هاتفك</h3>
-                <input type="tel" id="customer-phone" placeholder="أدخل رقمك للتواصل" class="w-full p-3 rounded-xl border-2 border-gray-100 font-bold text-sm bg-gray-50 mb-4 outline-none focus:border-barq-orange text-right">
-                <h3 class="font-black text-sm mb-2 text-barq-blue italic text-right">🏠 العنوان يدوياً</h3>
-                <textarea id="manual-address" placeholder="اسم الشارع، رقم البيت، أو أي علامة مميزة" class="w-full p-3 rounded-xl border-2 border-gray-100 font-bold text-sm bg-gray-50 outline-none focus:border-barq-orange text-right h-20"></textarea>
-            </div>`;
-        drawerContainer.insertAdjacentHTML('afterbegin', html);
-    }
-}
 // ==========================================
-// 7. إرسال الطلب عبر واتساب (النسخة الكاملة والمغلقة برمجياً)
+// 7. إرسال الطلب عبر واتساب (النسخة الذكية والنهائية)
 // ==========================================
 function setupWhatsAppAction() {
     const btn = document.getElementById('whatsapp-checkout');
     if (!btn) return;
 
     btn.onclick = function() {
-        // 1. التحقق من وجود بيانات السلة
         if (typeof cart === 'undefined' || cart.length === 0) {
-            alert("سلتك فارغة، فضلاً أضف وجباتك المفضلة أولاً! 🛒");
-            return;
+            return alert("سلتك فارغة، فضلاً أضف وجباتك المفضلة أولاً! 🛒");
         }
         
-        // 2. جلب بيانات العميل والتحقق من الهاتف
+        // قراءة الرقم من الحقل الموجود في الـ HTML
         const phoneInput = document.getElementById('customer-phone');
-        const phone = phoneInput ? phoneInput.value.trim() : "";
-        const manualAddr = document.getElementById('manual-address')?.value.trim() || "غير محدد";
-        const coords = document.getElementById('location-coords')?.value;
-        const payment = document.getElementById('payment-method')?.value || "نقد عند الاستلام (كاش)";
+        let phone = phoneInput ? phoneInput.value.trim() : "";
 
+        // التحقق من الرقم
         if (!phone || phone.length < 7) {
             alert("يرجى إدخال رقم هاتف صحيح للتواصل! 📞");
             if(phoneInput) phoneInput.focus();
             return;
         }
 
-        // 3. تجهيز رابط الموقع (الخريطة)
-        let mapLink = "لم يتم تحديد موقع GPS";
-        if (coords && coords.length > 5) {
-            mapLink = `https://www.google.com/maps?q=${coords}`;
-        }
+        const manualAddr = document.getElementById('manual-address')?.value.trim() || "غير محدد";
+        const coords = document.getElementById('location-coords')?.value;
+        const payment = document.getElementById('payment-method')?.value || "نقد عند الاستلام (كاش)";
 
-        // 4. بناء نص الرسالة
+        // تجهيز رابط الخريطة
+        const mapLink = coords ? `https://www.google.com/maps?q=${coords}` : "لم يتم تحديد موقع GPS";
+
         let msg = "🍱 *طلب جديد - البرق للتوصيل* ⚡\n";
         msg += "------------------------------\n";
         
@@ -484,7 +464,6 @@ function setupWhatsAppAction() {
             let currentPrice = item.price;
             let itemNote = "";
 
-            // التحقق من الكوبون لفايف ستار
             if (window.isCouponApplied && item.restaurantName && item.restaurantName.includes("فايف ستار")) {
                 currentPrice = item.price * 0.8;
                 itemNote = " (خصم 20% ✅)";
@@ -494,42 +473,29 @@ function setupWhatsAppAction() {
             finalTotal += itemLineTotal;
 
             msg += `${i + 1}. *${item.name}*${itemNote}\n`;
-            msg += `   🏬 *المطعم:* ${item.restaurantName || "غير محدد"}\n`;
             msg += `   💰 السعر: ${Math.round(currentPrice)} ريال [العدد: ${item.quantity}]\n`;
-            msg += "------------------------------\n";
         });
 
-        if (window.isCouponApplied) {
-            msg += `🎁 *الكوبون المستخدم:* FIVE20\n`;
-        }
-
+        if (window.isCouponApplied) msg += `🎁 *الكوبون:* FIVE20\n`;
         msg += `💰 *الإجمالي النهائي:* ${Math.round(finalTotal)} ريال\n\n`;
         msg += `📞 *رقم العميل:* ${phone}\n`;
-        msg += `💳 *طريقة الدفع:* ${payment}\n`;
-
-        if (!payment.includes("نقد")) {
-            msg += `📸 _(يرجى إرسال صورة إشعار التحويل الآن)_ ⬇️\n`;
-        }
-
+        msg += `💳 *الدفع:* ${payment}\n`;
         msg += `🏠 *العنوان:* ${manualAddr}\n`;
-        msg += `📍 *موقع الـ GPS:* \n${mapLink}\n\n`;
+        msg += `📍 *الموقع:* \n${mapLink}\n\n`;
         
-        msg += "📞 *أرقام التواصل والإدارة:*\n";
         msg += "🟢 مسئول الطلبات: 775185889\n";
         msg += "🏢 الإدارة العامة: 772111598\n";
         msg += "🛠️ الدعم الفني: 774245506\n";
         msg += "☎️ استفسارات: 781110052\n\n";
         msg += "شكراً لاختياركم البرق للتوصيل ⚡";
 
-        // 5. توجيه الطلب لمسئول الطلبات
         const orderManager = "775185889"; 
-        const whatsappUrl = `https://wa.me/967${orderManager}?text=${encodeURIComponent(msg)}`;
-        
-        window.open(whatsappUrl, '_blank');
+        window.open(`https://wa.me/967${orderManager}?text=${encodeURIComponent(msg)}`, '_blank');
     };
 }
+
 // ==========================================
-// 8. فتح وإغلاق السلة والتشغيل (النسخة النهائية والمكتملة)
+// 8. التحكم في السلة والتشغيل
 // ==========================================
 window.openCartDrawer = function() { 
     const drawer = document.getElementById('cart-drawer');
@@ -538,16 +504,10 @@ window.openCartDrawer = function() {
     if (drawer && overlay) {
         drawer.style.transform = "translateX(0)"; 
         overlay.classList.remove('hidden');
-
-        // إذا كان الحقل موجوداً في الـ HTML لا داعي لحقنه مجدداً
-        // فقط نقوم بتفعيل زر الواتساب ليقرأ البيانات
         setupWhatsAppAction(); 
 
-        // تحديث الخريطة لضمان ظهورها بشكل صحيح داخل السلة
         if(typeof map !== 'undefined' && map) {
-            setTimeout(() => {
-                map.invalidateSize();
-            }, 400);
+            setTimeout(() => { map.invalidateSize(); }, 400);
         }
     }
 };
@@ -555,26 +515,21 @@ window.openCartDrawer = function() {
 window.closeCartDrawer = function() { 
     const drawer = document.getElementById('cart-drawer');
     const overlay = document.getElementById('cart-overlay');
-    
     if (drawer && overlay) {
         drawer.style.transform = "translateX(-100%)"; 
         overlay.classList.add('hidden');
     }
 };
 
-// تشغيل الوظائف عند تحميل الصفحة بالكامل
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. تحديث الواجهة والبيانات
     if (typeof updateVisitCounter === 'function') updateVisitCounter();
     if (typeof displayReviews === 'function') displayReviews();
     if (typeof updateCartUI === 'function') updateCartUI();
     
-    // 2. تشغيل المكونات الأساسية
     setupWhatsAppAction();
-    if (typeof initBarqMap === 'function') initBarqMap();
+    initBarqMap();
     if (typeof displayRestaurantsGrid === 'function') displayRestaurantsGrid();
 
-    // 3. إعداد محرك البحث
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -584,3 +539,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+// ==========================================
+// 9. وظائف إضافية (التحقق من الدفع وتنسيق الواجهة)
+// ==========================================
+
+// دالة التحقق من طريقة الدفع لإظهار التنبيه
+window.checkPaymentMethod = function() {
+    const paymentSelect = document.getElementById('payment-method');
+    const transferNote = document.getElementById('transfer-note');
+    
+    if (paymentSelect && transferNote) {
+        // إذا اختار العميل أي وسيلة دفع غير الكاش، يظهر تنبيه إرسال الإشعار
+        if (paymentSelect.value !== "نقد عند الاستلام (كاش)") {
+            transferNote.classList.remove('hidden');
+        } else {
+            transferNote.classList.add('hidden');
+        }
+    }
+};
+
+// دالة لتحديث عداد الزيارات (في حال أردت تفعيلها)
+window.updateVisitCounter = function() {
+    let visits = localStorage.getItem('barq_visits') || 0;
+    visits = parseInt(visits) + 1;
+    localStorage.setItem('barq_visits', visits);
+};
+
+// تأكيد إغلاق كافة الأقواس البرمجية لضمان عمل الملف
+console.log("البرق للتوصيل: تم تحميل نظام التشغيل بنجاح ⚡");
