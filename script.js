@@ -442,47 +442,51 @@ function injectManualInputs() {
         drawerContainer.insertAdjacentHTML('afterbegin', html);
     }
 }
-// ==========================================// ===================// ==========================================
-// 7. إرسال الطلب عبر واتساب (النسخة الاحترافية الكاملة)
+// ==========================================
+// 7. إرسال الطلب عبر واتساب (النسخة الكاملة والمغلقة برمجياً)
 // ==========================================
 function setupWhatsAppAction() {
     const btn = document.getElementById('whatsapp-checkout');
     if (!btn) return;
 
     btn.onclick = function() {
-        // 1. التحقق من وجود أصناف في السلة
-        if (cart.length === 0) {
-            return alert("سلتك فارغة، فضلاً أضف وجباتك المفضلة أولاً! 🛒");
+        // 1. التحقق من وجود بيانات السلة
+        if (typeof cart === 'undefined' || cart.length === 0) {
+            alert("سلتك فارغة، فضلاً أضف وجباتك المفضلة أولاً! 🛒");
+            return;
         }
         
-        // 2. جمع بيانات العميل من الحقول
-        const phone = document.getElementById('customer-phone')?.value.trim() || "";
+        // 2. جلب بيانات العميل والتحقق من الهاتف
+        const phoneInput = document.getElementById('customer-phone');
+        const phone = phoneInput ? phoneInput.value.trim() : "";
         const manualAddr = document.getElementById('manual-address')?.value.trim() || "غير محدد";
         const coords = document.getElementById('location-coords')?.value;
         const payment = document.getElementById('payment-method')?.value || "نقد عند الاستلام (كاش)";
 
-        // التحقق من إدخال رقم الهاتف (إلزامي)
-        if (!phone) {
-            return alert("يرجى إدخال رقم هاتفك للتواصل! 📞");
+        if (!phone || phone.length < 7) {
+            alert("يرجى إدخال رقم هاتف صحيح للتواصل! 📞");
+            if(phoneInput) phoneInput.focus();
+            return;
         }
 
-        // 3. تجهيز رابط الخريطة (GPS)
-        const mapLink = coords ? `https://www.google.com/maps?q=${coords}` : "لم يتم تحديد موقع GPS";
+        // 3. تجهيز رابط الموقع (الخريطة)
+        let mapLink = "لم يتم تحديد موقع GPS";
+        if (coords && coords.length > 5) {
+            mapLink = `https://www.google.com/maps?q=${coords}`;
+        }
 
         // 4. بناء نص الرسالة
         let msg = "🍱 *طلب جديد - البرق للتوصيل* ⚡\n";
         msg += "------------------------------\n";
         
         let finalTotal = 0;
-
-        // تكرار الأصناف لبناء القائمة في الرسالة
         cart.forEach((item, i) => {
             let currentPrice = item.price;
             let itemNote = "";
 
-            // تطبيق الخصم برمجياً في الرسالة إذا كان الكوبون مفعل ومطعم فايف ستار
-            if (typeof isCouponApplied !== 'undefined' && isCouponApplied && item.restaurantName && item.restaurantName.includes("فايف ستار")) {
-                currentPrice = item.price * 0.8; // خصم 20%
+            // التحقق من الكوبون لفايف ستار
+            if (window.isCouponApplied && item.restaurantName && item.restaurantName.includes("فايف ستار")) {
+                currentPrice = item.price * 0.8;
                 itemNote = " (خصم 20% ✅)";
             }
 
@@ -491,41 +495,40 @@ function setupWhatsAppAction() {
 
             msg += `${i + 1}. *${item.name}*${itemNote}\n`;
             msg += `   🏬 *المطعم:* ${item.restaurantName || "غير محدد"}\n`;
-            msg += `   💰 السعر: ${Math.round(currentPrice)} ريال [الكمية: ${item.quantity}]\n`;
+            msg += `   💰 السعر: ${Math.round(currentPrice)} ريال [العدد: ${item.quantity}]\n`;
             msg += "------------------------------\n";
         });
 
-        // إضافة سطر الكوبون في الرسالة إذا تم استخدامه
-        if (typeof isCouponApplied !== 'undefined' && isCouponApplied) {
+        if (window.isCouponApplied) {
             msg += `🎁 *الكوبون المستخدم:* FIVE20\n`;
         }
 
-        // تفاصيل الحساب والعميل
         msg += `💰 *الإجمالي النهائي:* ${Math.round(finalTotal)} ريال\n\n`;
         msg += `📞 *رقم العميل:* ${phone}\n`;
         msg += `💳 *طريقة الدفع:* ${payment}\n`;
 
-        // إضافة تنبيه "صورة التحويل" في حال لم يكن الدفع كاش
         if (!payment.includes("نقد")) {
             msg += `📸 _(يرجى إرسال صورة إشعار التحويل الآن)_ ⬇️\n`;
         }
 
-        msg += `🏠 *العنوان:* ${manualAddr}\n\n`;
-        msg += `📍 *موقع الـ GPS:*\n${mapLink}\n\n`;
+        msg += `🏠 *العنوان:* ${manualAddr}\n`;
+        msg += `📍 *موقع الـ GPS:* \n${mapLink}\n\n`;
         
-        msg += "📞 *أرقام الإدارة للتواصل:*\n";
-        msg += "1️⃣ 775185889\n2️⃣ 781110052\n3️⃣ 774245506\n4️⃣ 772111598\n\n";
+        msg += "📞 *أرقام التواصل والإدارة:*\n";
+        msg += "🟢 مسئول الطلبات: 775185889\n";
+        msg += "🏢 الإدارة العامة: 772111598\n";
+        msg += "🛠️ الدعم الفني: 774245506\n";
+        msg += "☎️ استفسارات: 781110052\n\n";
         msg += "شكراً لاختياركم البرق للتوصيل ⚡";
 
-        // 5. فتح الواتساب (الإرسال للرقم الأول)
-        const targetNumber = "775185889"; // الرقم الأساسي لاستقبال الطلبات
-        const whatsappUrl = `https://wa.me/967${targetNumber}?text=${encodeURIComponent(msg)}`;
+        // 5. توجيه الطلب لمسئول الطلبات
+        const orderManager = "775185889"; 
+        const whatsappUrl = `https://wa.me/967${orderManager}?text=${encodeURIComponent(msg)}`;
         
         window.open(whatsappUrl, '_blank');
     };
 }
 // ==========================================
-// 8. فتح وإغلاق السلة والتشغيل (النسخة النهائية)// ==========================================
 // 8. فتح وإغلاق السلة والتشغيل (النسخة النهائية والمكتملة)
 // ==========================================
 window.openCartDrawer = function() { 
@@ -536,14 +539,12 @@ window.openCartDrawer = function() {
         drawer.style.transform = "translateX(0)"; 
         overlay.classList.remove('hidden');
 
-        // 1. حقن حقول الهاتف والعنوان أولاً
-        injectManualInputs(); 
-        
-        // 2. تفعيل زر الواتساب ليقرأ البيانات التي تم حقنها للتو
+        // إذا كان الحقل موجوداً في الـ HTML لا داعي لحقنه مجدداً
+        // فقط نقوم بتفعيل زر الواتساب ليقرأ البيانات
         setupWhatsAppAction(); 
 
-        // 3. تحديث الخريطة لضمان ظهورها بشكل صحيح
-        if(map) {
+        // تحديث الخريطة لضمان ظهورها بشكل صحيح داخل السلة
+        if(typeof map !== 'undefined' && map) {
             setTimeout(() => {
                 map.invalidateSize();
             }, 400);
@@ -561,21 +562,25 @@ window.closeCartDrawer = function() {
     }
 };
 
+// تشغيل الوظائف عند تحميل الصفحة بالكامل
 document.addEventListener('DOMContentLoaded', () => {
-    updateVisitCounter();
-    displayReviews();
-    updateCartUI();
+    // 1. تحديث الواجهة والبيانات
+    if (typeof updateVisitCounter === 'function') updateVisitCounter();
+    if (typeof displayReviews === 'function') displayReviews();
+    if (typeof updateCartUI === 'function') updateCartUI();
     
-    // تشغيل أولي
+    // 2. تشغيل المكونات الأساسية
     setupWhatsAppAction();
-    initBarqMap();
-    displayRestaurantsGrid();
+    if (typeof initBarqMap === 'function') initBarqMap();
+    if (typeof displayRestaurantsGrid === 'function') displayRestaurantsGrid();
 
-    // إعداد كود البحث
+    // 3. إعداد محرك البحث
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
-            displayRestaurantsGrid(e.target.value);
+            if (typeof displayRestaurantsGrid === 'function') {
+                displayRestaurantsGrid(e.target.value);
+            }
         });
     }
 });
