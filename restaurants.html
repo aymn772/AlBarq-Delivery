@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مطاعم البرق | قائمة المطاعم والوجبات</title>
+    <title>قائمة المطاعم</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -22,7 +23,13 @@
 
     <style>
         * { font-family: 'Cairo', sans-serif !important; scroll-behavior: smooth; }
-        .glass-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #eee; }
+        .glass-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #eee; transition: all 0.4s ease; }
+        
+        .nav-link { font-weight: 700; transition: all 0.3s; position: relative; color: #4b5563; }
+        .nav-link:hover { color: #FF6B00; }
+        .nav-link.active { color: #FF6B00; }
+        .nav-link.active::after { content: ''; position: absolute; bottom: -5px; right: 0; width: 100%; height: 3px; background: #FF6B00; border-radius: 10px; }
+
         #map { height: 180px; width: 100%; border-radius: 1.5rem; border: 2px solid #f3f4f6; z-index: 10; }
         #cart-drawer { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 5000; }
         #backToTop {
@@ -32,22 +39,32 @@
             font-size: 24px; cursor: pointer; z-index: 9999;
             box-shadow: 0 10px 20px rgba(0, 87, 255, 0.4); border: 2px solid white;
         }
+        #cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 4500; display: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased">
 
-    <div id="cart-overlay" onclick="closeCartDrawer()" class="fixed inset-0 bg-black/50 hidden z-[4500]"></div>
+    <div id="cart-overlay" onclick="closeCartDrawer()"></div>
 
     <header class="fixed top-0 left-0 right-0 z-[4000] glass-header">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center text-right">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            
             <div class="flex-shrink-0">
                 <a href="index.html" class="flex items-center gap-1">
-                    <span class="text-barq-blue font-black text-2xl italic">البرق</span>
-                    <span class="text-barq-orange font-black text-2xl italic">للتوصيل</span>
+                    <span class="text-barq-blue font-black text-2xl italic tracking-tighter">قائمة</span>
+                    <span class="text-barq-orange font-black text-2xl italic tracking-tighter">المطاعم</span>
                 </a>
             </div>
+
+            <nav class="hidden md:flex items-center gap-8">
+                <a href="index.html" class="nav-link">الرئيسية</a>
+                <a href="restaurants.html" class="nav-link active">المطاعم</a>
+                <a href="offers.html" class="nav-link">العروض 🔥</a>
+                <a href="about.html" class="nav-link">من نحن</a>
+            </nav>
+
             <div class="flex items-center gap-3">
-                <button onclick="openCartDrawer()" class="p-3 bg-white border rounded-2xl relative shadow-sm">
+                <button onclick="openCartDrawer()" class="p-3 bg-white border rounded-2xl relative shadow-sm hover:scale-105 transition">
                     <span id="cart-count" class="absolute -top-2 -right-2 bg-barq-orange text-white text-[11px] w-6 h-6 flex items-center justify-center rounded-full font-black hidden">0</span>
                     <span class="text-2xl">🛒</span>
                 </button>
@@ -56,7 +73,7 @@
         </div>
     </header>
 
-    <div id="mobile-menu" class="fixed inset-0 bg-[#0D1B2A] z-[5000] hidden flex flex-col items-center justify-center gap-8 text-white">
+    <div id="mobile-menu" class="fixed inset-0 bg-[#0D1B2A] z-[5000] hidden flex flex-col items-center justify-center gap-8 text-white text-right">
         <button onclick="toggleMobileMenu()" class="absolute top-6 right-6 text-4xl">✕</button>
         <a href="index.html" class="text-2xl font-black italic">الرئيسية</a>
         <a href="restaurants.html" class="text-2xl font-black italic text-barq-orange">المطاعم</a>
@@ -66,19 +83,20 @@
 
     <main class="pt-28 pb-16">
         <div class="container mx-auto px-4 text-center">
-            <h1 class="text-4xl font-black mb-4 italic">اكتشف أفضل المطاعم 🏢</h1>
-            <p class="text-gray-500 font-bold mb-8">اطلب وجبتك المفضلة وسنصل إليك بلمح البصر</p>
+             <input type="hidden" id="selected-restaurant-name" value="مطعم غير محدد">
+
+            <h1 class="text-3xl font-black mb-8 italic">قائمة المطاعم 🏢</h1>
             
             <div class="max-w-2xl mx-auto relative mb-12">
                 <input type="text" id="search-input" placeholder="ابحث عن مطعم أو وجبة..." 
-                class="w-full px-8 py-5 rounded-[2rem] border-2 border-gray-100 outline-none focus:border-barq-blue text-center font-bold text-lg bg-white shadow-xl transition-all">
+                class="w-full px-8 py-5 rounded-[2rem] border-2 border-gray-100 outline-none focus:border-barq-blue text-center font-bold text-lg bg-white shadow-sm transition-all">
             </div>
 
             <div id="menu-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 </div>
         </div>
     </main>
-    <div id="cart-drawer" class="fixed top-0 left-0 h-full w-full max-w-[380px] bg-white translate-x-[-100%] flex flex-col border-r-4 border-barq-orange shadow-2xl z-[5000]">
+    <div id="cart-drawer" class="fixed top-0 left-0 h-full w-full max-w-[380px] bg-white translate-x-[-100%] flex flex-col border-r-4 border-barq-orange shadow-2xl transition-transform duration-300 z-[5000]">
         
         <div class="p-6 bg-barq-blue text-white flex justify-between items-center shadow-lg">
             <h2 class="font-black text-xl italic">حقيبة الطلبات 🛍️</h2>
@@ -87,44 +105,42 @@
     
         <div class="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
             
-            <div id="cart-items" class="space-y-3 font-bold text-right">
-                </div>
+            <div id="cart-items" class="space-y-3 font-bold text-right"></div>
     
             <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
-                <h3 class="font-black text-[12px] mb-2 text-barq-blue italic text-right">🎁 هل لديك كوبون خصم؟</h3>
+                <h3 class="font-black text-sm mb-2 text-barq-blue italic text-right">🎁 هل لديك كوبون خصم؟</h3>
                 <div class="flex gap-2">
-                    <button onclick="applyCoupon()" class="bg-barq-blue text-white px-4 py-2 rounded-xl font-black text-xs shadow-md active:scale-95 transition">تفعيل</button>
-                    <input type="text" id="coupon-input" placeholder="أدخل الكود" class="flex-1 p-2 rounded-xl border-2 border-gray-100 font-bold text-sm text-right outline-none focus:border-barq-blue">
+                    <button onclick="applyCoupon()" class="bg-barq-blue text-white px-4 py-2 rounded-xl font-black text-xs shadow-md">تفعيل</button>
+                    <input type="text" id="coupon-input" placeholder="أدخل الكود" class="flex-1 p-2 rounded-xl border-2 border-gray-100 font-bold text-sm text-right outline-none">
                 </div>
-                <p id="coupon-msg" class="text-[10px] mt-1 text-right font-bold"></p>
+                <p id="coupon-msg" class="text-[9px] mt-1 text-right font-bold"></p>
             </div>
     
             <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
-                <h3 class="font-black text-[12px] mb-2 text-barq-blue italic text-right">📞 رقم هاتف المستلم</h3>
-                <input type="tel" id="customer-phone" placeholder="7XXXXXXXX" 
-                       class="w-full p-3 rounded-xl border-2 border-gray-100 font-bold text-sm text-center outline-none focus:border-barq-orange bg-gray-50">
+                <h3 class="font-black text-sm mb-2 text-barq-blue italic text-right">📞 رقم الهاتف</h3>
+                <input type="tel" id="customer-phone" placeholder="7XXXXXXXX" class="w-full p-3 rounded-xl border-2 border-gray-100 font-bold text-sm text-center outline-none focus:border-barq-orange bg-gray-50">
             </div>
     
             <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
-                <h3 class="font-black text-[12px] mb-2 text-barq-blue italic text-right">📍 موقع التوصيل (GPS)</h3>
+                <h3 class="font-black text-sm mb-2 text-barq-blue italic text-right">📍 موقع التوصيل</h3>
                 <div id="map" class="mb-3"></div>
-                <button onclick="getCurrentLocation()" class="w-full bg-blue-50 text-barq-blue py-3 rounded-xl text-[10px] font-black border border-blue-100 hover:bg-blue-100 transition">
-                    تحديد موقعي التلقائي 🎯
-                </button>
+                <button onclick="getCurrentLocation()" class="w-full bg-blue-50 text-barq-blue py-3 rounded-xl text-[10px] font-black border border-blue-100">تحديد موقعي التلقائي (GPS) 🎯</button>
                 <input type="hidden" id="location-coords">
-                <input type="text" id="manual-address" placeholder="وصف إضافي للعنوان (اختياري)" 
-                       class="w-full mt-2 p-3 rounded-xl border-2 border-gray-100 font-bold text-sm text-right outline-none focus:border-barq-blue">
+                <input type="text" id="manual-address" placeholder="وصف العنوان (اختياري)" class="w-full mt-2 p-3 rounded-xl border-2 border-gray-100 font-bold text-sm text-right outline-none">
             </div>
     
-            <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm mb-6">
-                <h3 class="font-black text-[12px] mb-2 text-barq-blue italic text-right">💳 اختر طريقة الدفع</h3>
+            <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
+                <h3 class="font-black text-sm mb-2 text-barq-blue italic text-right">💳 طريقة الدفع</h3>
                 <select id="payment-method" onchange="checkPaymentMethod()" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-[12px] text-right focus:border-barq-orange outline-none">
                     <option value="نقد عند الاستلام (كاش)">نقد عند الاستلام (كاش) 💵</option>
                     <option value="كريمي (ام فلوس)">بنك الكريمي (ام فلوس) 🏦</option>
                     <option value="محفظة جوالي (YKB)">بنك اليمن والكويت (جوالي) 📱</option>
                     <option value="محفظة بيس (Pace)">بنك الأمل (بيس) 💸</option>
+                    <option value="محفظة جيب (Pocket)">بنك التضامن (جيب) 💳</option>
+                    <option value="موبايل موني">كاك بنك (موبايل موني) 📲</option>
+                    <option value="محفظة يمن موني">يمن موني 🇾🇪</option>
+                    <option value="محفظة قطاف">بنك سبأ (قطاف) ✨</option>
                 </select>
-                
                 <div id="transfer-note" class="hidden mt-3 p-3 bg-orange-50 border-r-4 border-barq-orange rounded-lg">
                     <p class="text-[10px] font-black text-barq-orange text-right leading-relaxed animate-pulse">
                         ⚠️ يرجى إرسال "صورة إشعار التحويل" عبر الواتساب فور إرسال الطلب.
@@ -133,13 +149,13 @@
             </div>
         </div>
     
-        <div class="p-6 border-t bg-white shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+        <div class="p-6 border-t bg-white">
             <div class="flex justify-between items-center mb-4 font-black text-xl text-barq-blue italic">
                 <span id="cart-total" class="text-barq-orange">0 ريال</span>
                 <span>الإجمالي:</span>
             </div>
-            <button id="whatsapp-checkout" class="w-full bg-[#25D366] text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:bg-[#20bd5a] transform active:scale-95 transition-all">
-                تأكيد الطلب عبر واتساب ✅
+            <button id="whatsapp-checkout" onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:bg-[#20bd5a] transition-all transform active:scale-95">
+                إرسال عبر واتساب ✅
             </button>
         </div>
     </div>
@@ -147,26 +163,24 @@
     <footer class="bg-[#0D1B2A] text-white py-12 mt-16 border-t-4 border-barq-orange">
         <div class="container mx-auto px-6 text-center">
             <div class="flex justify-center items-center gap-2 mb-8">
-                <span class="text-barq-blue font-black text-3xl italic">البرق</span>
-                <span class="text-barq-orange font-black text-3xl italic">للتوصيل</span>
+                <span class="text-barq-blue font-black text-3xl italic tracking-tighter">البرق</span>
+                <span class="text-barq-orange font-black text-3xl italic tracking-tighter">للتوصيل</span>
             </div>
 
             <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16 mb-10">
                 <div class="text-center">
-                    <p class="text-gray-400 text-sm mb-2 font-bold italic">خدمة العملاء</p>
-                    <p class="text-2xl font-black text-white">772111598</p>
+                    <p class="text-gray-400 text-sm mb-2 font-bold italic">للإدارة</p>
+                    <p class="text-2xl font-black tracking-widest text-white">772111598</p>
                 </div>
                 <div class="hidden md:block w-px h-12 bg-gray-700"></div>
                 <div class="text-center">
-                    <p class="text-gray-400 text-sm mb-2 font-bold italic">للانضمام كطرف توصيل</p>
-                    <p class="text-2xl font-black text-white">781110052</p>
+                    <p class="text-gray-400 text-sm mb-2 font-bold italic">للاستفسار</p>
+                    <p class="text-2xl font-black tracking-widest text-white">781110052</p>
                 </div>
             </div>
 
-            <div class="pt-8 border-t border-gray-800">
-                <p class="text-gray-500 text-xs font-bold italic">
-                    صنعاء - اليمن | جميع الحقوق محفوظة © 2026
-                </p>
+            <div class="pt-8 border-t border-gray-800 text-gray-500 text-xs font-bold italic">
+                صنعاء - اليمن | جميع الحقوق محفوظة © 2026
             </div>
         </div>
     </footer>
@@ -175,43 +189,59 @@
 
     <script src="script.js"></script>
     <script>
-        // دالة القائمة الجانبية للهاتف
+        // دالة إرسال الطلب وتضمين اسم المطعم
+        function sendToWhatsApp() {
+            // سحب اسم المطعم المختار من الحقل المخفي
+            const restaurantName = document.getElementById('selected-restaurant-name').value;
+            const phone = document.getElementById('customer-phone').value;
+            const address = document.getElementById('manual-address').value;
+            const payment = document.getElementById('payment-method').value;
+            const total = document.getElementById('cart-total').innerText;
+
+            if (!phone) {
+                alert("يرجى إدخال رقم هاتفك أولاً!");
+                return;
+            }
+
+            let message = `*طلب جديد من البرق للتوصيل* ⚡%0A%0A`;
+            message += `*المطعم:* ${restaurantName}%0A`;
+            message += `--------------------------%0A`;
+            // هنا يفضل إضافة وجبات السلة برمجياً عبر الـ loop الخاص بـ cart
+            message += `*الإجمالي:* ${total}%0A`;
+            message += `*رقم العميل:* ${phone}%0A`;
+            message += `*العنوان:* ${address || "وصف يدوي غير محدد"}%0A`;
+            message += `*طريقة الدفع:* ${payment}%0A`;
+
+            const adminPhone = "772111598";
+            window.open(`https://wa.me/${adminPhone}?text=${message}`, '_blank');
+        }
+
         function toggleMobileMenu() {
             const menu = document.getElementById('mobile-menu');
-            const isHidden = menu.classList.toggle('hidden');
-            document.body.style.overflow = isHidden ? 'auto' : 'hidden';
+            menu.classList.toggle('hidden');
         }
 
-        // فتح وإغلاق سلة المشتريات
         function openCartDrawer() { 
             document.getElementById('cart-drawer').style.transform = 'translateX(0)';
-            document.getElementById('cart-overlay').classList.remove('hidden');
-        }
-        function closeCartDrawer() { 
-            document.getElementById('cart-drawer').style.transform = 'translateX(-100%)';
-            document.getElementById('cart-overlay').classList.add('hidden');
+            document.getElementById('cart-overlay').style.display = 'block';
         }
 
-        // إظهار ملاحظة التحويل عند اختيار دفع إلكتروني
+        function closeCartDrawer() { 
+            document.getElementById('cart-drawer').style.transform = 'translateX(-100%)';
+            document.getElementById('cart-overlay').style.display = 'none';
+        }
+
         function checkPaymentMethod() {
             const method = document.getElementById('payment-method').value;
             const note = document.getElementById('transfer-note');
-            if (method !== "نقد عند الاستلام (كاش)") {
-                note.classList.remove('hidden');
-            } else {
-                note.classList.add('hidden');
-            }
+            note.classList.toggle('hidden', method === "نقد عند الاستلام (كاش)");
         }
 
-        // منطق زر الصعود للأعلى
         const backBtn = document.getElementById("backToTop");
         window.onscroll = function() {
-            if (window.pageYOffset > 400) {
-                backBtn.style.display = "flex";
-            } else {
-                backBtn.style.display = "none";
-            }
+            backBtn.style.display = (window.pageYOffset > 400) ? "flex" : "none";
         };
+
         function scrollToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
