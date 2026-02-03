@@ -210,7 +210,8 @@ window.toggleMobileMenu = function() {
 };
 
 // ==========================================
-// 4. عرض المطاعم والمنيو (هذا الجزء الذي سُقط سابقاً)
+// ==========================================
+// 4. عرض المطاعم والمنيو (النسخة المعدلة لربط الاسم)
 // ==========================================
 window.displayRestaurantsGrid = function(searchTerm = "") {
     const grid = document.getElementById('menu-grid');
@@ -233,6 +234,13 @@ window.openRestaurantMenu = function(resId) {
     const grid = document.getElementById('menu-grid');
     const titleContainer = document.getElementById('page-title-container');
 
+    // --- التعديل المطلوب هنا: ربط اسم المطعم المختار ---
+    const hiddenInput = document.getElementById('selected-restaurant-name');
+    if (hiddenInput) {
+        hiddenInput.value = res.name; // تخزين اسم المطعم لرسالة الواتساب
+    }
+    // -------------------------------------------------
+
     if (titleContainer) {
         titleContainer.innerHTML = `
             <div class="flex flex-col mb-6">
@@ -252,7 +260,6 @@ window.openRestaurantMenu = function(resId) {
         </div>`).join('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
-
 // ==========================================
 // 5. إدارة السلة وإضافة العروض (النسخة المحدثة بالخصومات والصوت)
 // ==========================================
@@ -425,9 +432,8 @@ window.getCurrentLocation = function() {
         alert("متصفحك لا يدعم خاصية تحديد الموقع.");
     }
 };
-
 // ==========================================
-// 7. إرسال الطلب عبر واتساب (النسخة الذكية والنهائية)
+// 7. إرسال الطلب عبر واتساب (النسخة الذكية والنهائية المعدلة)
 // ==========================================
 function setupWhatsAppAction() {
     const btn = document.getElementById('whatsapp-checkout');
@@ -438,11 +444,14 @@ function setupWhatsAppAction() {
             return alert("سلتك فارغة، فضلاً أضف وجباتك المفضلة أولاً! 🛒");
         }
         
-        // قراءة الرقم من الحقل الموجود في الـ HTML
+        // 1. قراءة البيانات من واجهة المستخدم
         const phoneInput = document.getElementById('customer-phone');
         let phone = phoneInput ? phoneInput.value.trim() : "";
+        
+        // جلب اسم المطعم المخزن في الحقل المخفي (الذي أضفناه في القسم 4)
+        const restaurantName = document.getElementById('selected-restaurant-name').value || "غير محدد";
 
-        // التحقق من الرقم
+        // 2. التحقق من رقم الهاتف
         if (!phone || phone.length < 7) {
             alert("يرجى إدخال رقم هاتف صحيح للتواصل! 📞");
             if(phoneInput) phoneInput.focus();
@@ -453,10 +462,12 @@ function setupWhatsAppAction() {
         const coords = document.getElementById('location-coords')?.value;
         const payment = document.getElementById('payment-method')?.value || "نقد عند الاستلام (كاش)";
 
-        // تجهيز رابط الخريطة
+        // 3. تجهيز رابط الخريطة (تم تصحيح الرابط ليعمل مباشرة)
         const mapLink = coords ? `https://www.google.com/maps?q=${coords}` : "لم يتم تحديد موقع GPS";
 
+        // 4. بناء نص الرسالة
         let msg = "🍱 *طلب جديد - البرق للتوصيل* ⚡\n";
+        msg += `*المطعم:* ${restaurantName}\n`; // إضافة اسم المطعم هنا
         msg += "------------------------------\n";
         
         let finalTotal = 0;
@@ -464,6 +475,7 @@ function setupWhatsAppAction() {
             let currentPrice = item.price;
             let itemNote = "";
 
+            // تطبيق خصم الكوبون إذا كان مفعلاً لمطعم فايف ستار
             if (window.isCouponApplied && item.restaurantName && item.restaurantName.includes("فايف ستار")) {
                 currentPrice = item.price * 0.8;
                 itemNote = " (خصم 20% ✅)";
@@ -476,6 +488,7 @@ function setupWhatsAppAction() {
             msg += `   💰 السعر: ${Math.round(currentPrice)} ريال [العدد: ${item.quantity}]\n`;
         });
 
+        msg += "------------------------------\n";
         if (window.isCouponApplied) msg += `🎁 *الكوبون:* FIVE20\n`;
         msg += `💰 *الإجمالي النهائي:* ${Math.round(finalTotal)} ريال\n\n`;
         msg += `📞 *رقم العميل:* ${phone}\n`;
@@ -489,6 +502,7 @@ function setupWhatsAppAction() {
         msg += "☎️ استفسارات: 781110052\n\n";
         msg += "شكراً لاختياركم البرق للتوصيل ⚡";
 
+        // 5. فتح الواتساب
         const orderManager = "775185889"; 
         window.open(`https://wa.me/967${orderManager}?text=${encodeURIComponent(msg)}`, '_blank');
     };
