@@ -259,8 +259,8 @@ window.openRestaurantMenu = function(resId) {
         </div>`).join('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
-// ==========================================
-// 5. إدارة السلة وإضافة العروض (النسخة المحدثة بالخصومات والصوت)
+/// ==========================================
+// 5. إدارة السلة وإضافة العروض (النسخة الشاملة لدعم المطاعم المتعددة)
 // ==========================================
 
 // وظيفة إضافة العروض الخاصة للسلة
@@ -270,7 +270,13 @@ window.addOfferToCart = function(offerName, restaurantName, price) {
     if (existing) { 
         existing.quantity += 1; 
     } else { 
-        cart.push({ id: offerId, name: offerName, restaurantName: restaurantName, price: price, quantity: 1 }); 
+        cart.push({ 
+            id: offerId, 
+            name: offerName, 
+            restaurantName: restaurantName, // حفظ اسم المطعم للعرض
+            price: price, 
+            quantity: 1 
+        }); 
     }
     updateCartUI();
     openCartDrawer();
@@ -280,11 +286,20 @@ window.addOfferToCart = function(offerName, restaurantName, price) {
 window.addMenuItemToCart = function(resId, itemId) {
     const res = restaurants.find(r => r.id === resId);
     const product = res.menu.find(m => m.id === itemId);
-    const existing = cart.find(item => item.id === itemId);
+    
+    // البحث عن المنتج مع التأكد من معرف المطعم (لعدم خلط الوجبات المتشابهة)
+    const existing = cart.find(item => item.id === itemId && item.restaurantName === res.name);
+    
     if (existing) { 
         existing.quantity += 1; 
     } else { 
-        cart.push({ id: product.id, name: product.name, restaurantName: res.name, price: product.price, quantity: 1 }); 
+        cart.push({ 
+            id: product.id, 
+            name: product.name, 
+            restaurantName: res.name, // حفظ اسم المطعم لرسالة الواتساب
+            price: product.price, 
+            quantity: 1 
+        }); 
     }
     updateCartUI();
     openCartDrawer();
@@ -295,18 +310,16 @@ function updateCartUI() {
     localStorage.setItem('barqCart', JSON.stringify(cart));
     const container = document.getElementById('cart-items');
     
-    // 1. حساب الإجمالي النهائي مع مراعاة خصم الكوبون
     let totalAfterDiscount = 0;
     cart.forEach(item => {
         let priceToCalculate = item.price;
-        // إذا كان الكوبون مفعل ومطعم فايف ستار، اخصم 20%
+        // تطبيق الخصم إذا كان الكوبون مفعل ومطعم فايف ستار
         if (typeof isCouponApplied !== 'undefined' && isCouponApplied && item.restaurantName.includes("فايف ستار")) {
             priceToCalculate = item.price * 0.8;
         }
         totalAfterDiscount += (priceToCalculate * item.quantity);
     });
 
-    // 2. عرض العناصر داخل السلة
     if (container) {
         if (cart.length === 0) {
             container.innerHTML = '<p class="text-center py-10 opacity-40 font-bold">السلة فارغة 🛒</p>';
@@ -315,7 +328,6 @@ function updateCartUI() {
                 let currentItemPrice = item.price;
                 let discountLabel = "";
                 
-                // إضافة ملصق الخصم بجانب الوجبة في الواجهة
                 if (typeof isCouponApplied !== 'undefined' && isCouponApplied && item.restaurantName.includes("فايف ستار")) {
                     currentItemPrice = item.price * 0.8;
                     discountLabel = `<span class="text-green-500 text-[9px] block font-black">خصم 20% مفعّل ✅</span>`;
@@ -325,7 +337,7 @@ function updateCartUI() {
                 <div class="flex justify-between items-center bg-white p-3 rounded-2xl mb-2 border border-gray-100 shadow-sm animate-fade-in">
                     <div class="text-right">
                         <p class="font-black text-xs">${item.name}</p>
-                        <p class="text-barq-blue text-[10px] font-bold">${Math.round(currentItemPrice)} ريال × ${item.quantity}</p>
+                        <p class="text-gray-400 text-[9px] font-bold">${item.restaurantName}</p> <p class="text-barq-blue text-[10px] font-bold">${Math.round(currentItemPrice)} ريال × ${item.quantity}</p>
                         ${discountLabel}
                     </div>
                     <button onclick="removeFromCart('${item.id}')" class="text-red-500 font-black px-2 hover:scale-110 transition">✕</button>
@@ -334,13 +346,11 @@ function updateCartUI() {
         }
     }
     
-    // 3. تحديث نص الإجمالي في الأسفل
     const totalElement = document.getElementById('cart-total');
     if (totalElement) {
         totalElement.innerText = Math.round(totalAfterDiscount) + " ريال";
     }
 
-    // 4. تحديث عداد السلة (Badge)
     const badge = document.getElementById('cart-count');
     if (badge) {
         badge.innerText = cart.length;
@@ -354,7 +364,7 @@ window.removeFromCart = function(id) {
     updateCartUI();
 };
 
-// وظيفة تفعيل الكوبون مع الصوت
+// وظيفة تفعيل الكوبون
 window.applyCoupon = function() {
     const input = document.getElementById('coupon-input');
     const msg = document.getElementById('coupon-msg');
@@ -362,22 +372,16 @@ window.applyCoupon = function() {
     
     if (code === "FIVE20") {
         isCouponApplied = true;
-        
-        // تشغيل صوت النجاح
         new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(() => {});
-        
         alert("🎉 مبروك! تم تفعيل خصم 20% لمطعم فايف ستار.");
         msg.innerText = "تم تفعيل الخصم بنجاح! ✅";
         msg.className = "text-[9px] mt-1 text-right font-bold text-green-600 animate-bounce";
         input.style.borderColor = "#22c55e";
         input.disabled = true;
-        
         updateCartUI();
     } else {
         isCouponApplied = false;
-        // صوت خطأ
         new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3').play().catch(() => {});
-        
         alert("❌ الكود غير صحيح");
         msg.innerText = "الكود غير صحيح ❌";
         msg.className = "text-[9px] mt-1 text-right font-bold text-red-600";
@@ -385,8 +389,6 @@ window.applyCoupon = function() {
         updateCartUI();
     }
 };
-
-
 // ==========================================
 // 6. الخريطة وإعدادات الموقع (تم حذف الحقن اليدوي لمنع التعارض)
 // ==========================================
@@ -431,61 +433,77 @@ window.getCurrentLocation = function() {
         alert("متصفحك لا يدعم خاصية تحديد الموقع.");
     }
 };
-// ==========================================// ==========================================
-// 7. إرسال الطلب عبر واتساب (النسخة النهائية والمؤكدة)
+// ==========================================
+// 7. إرسال الطلب عبر واتساب (النسخة الشاملة والكاملة - بدون نقص)
 // ==========================================
 function setupWhatsAppAction() {
     const btn = document.getElementById('whatsapp-checkout');
     if (!btn) return;
 
     btn.onclick = function() {
-        // التحقق من وجود أصناف في السلة
+        // 1. التحقق من وجود أصناف في السلة
         if (typeof cart === 'undefined' || cart.length === 0) {
             return alert("سلتك فارغة، فضلاً أضف وجباتك المفضلة أولاً! 🛒");
         }
         
-        // جلب اسم المطعم المختار من الحقل المخفي
-        const restaurantName = document.getElementById('selected-restaurant-name').value || "غير محدد";
-
-        // جلب تفاصيل العنوان والموقع وطريقة الدفع
+        // 2. جلب تفاصيل العنوان والموقع وطريقة الدفع
         const manualAddr = document.getElementById('manual-address')?.value.trim() || "غير محدد";
         const coords = document.getElementById('location-coords')?.value;
         const payment = document.getElementById('payment-method')?.value || "نقد عند الاستلام (كاش)";
 
-        // --- إصلاح رابط الخريطة ليعمل بشكل احترافي ---
+        // 3. تجهيز رابط الخريطة الاحترافي
         const mapLink = coords ? `https://www.google.com/maps?q=${coords}` : "لم يتم تحديد موقع GPS";
 
-        // --- بناء نص الرسالة الكامل ---
+        // 4. بناء نص الرسالة
         let msg = "🍱 *طلب جديد - البرق للتوصيل* ⚡\n";
-        msg += `*المطعم:* ${restaurantName}\n`;
         msg += "------------------------------\n";
         
         let finalTotal = 0;
+        
+        // حلقة تمر على كل وجبة في السلة
         cart.forEach((item, i) => {
-            const itemLineTotal = item.price * item.quantity;
+            let currentPrice = item.price;
+            let itemNote = "";
+
+            // تطبيق الخصم إذا كان الكوبون مفعل ومطعم فايف ستار
+            if (typeof isCouponApplied !== 'undefined' && isCouponApplied && item.restaurantName && item.restaurantName.includes("فايف ستار")) {
+                currentPrice = item.price * 0.8;
+                itemNote = " (خصم 20% ✅)";
+            }
+
+            const itemLineTotal = currentPrice * item.quantity;
             finalTotal += itemLineTotal;
 
-            msg += `${i + 1}. *${item.name}*\n`;
-            msg += `   💰 السعر: ${Math.round(item.price)} ريال [العدد: ${item.quantity}]\n`;
+            // تفاصيل الصنف
+            msg += `${i + 1}. *${item.name}*${itemNote}\n`;
+            msg += `   🏢 *المطعم:* ${item.restaurantName || "غير محدد"}\n`;
+            msg += `   💰 السعر: ${Math.round(currentPrice)} ريال [العدد: ${item.quantity}]\n`;
+            msg += "   - - -\n";
         });
 
         msg += "------------------------------\n";
+        
+        // عرض الكوبون في الإجمالي إذا كان مفعلاً
+        if (typeof isCouponApplied !== 'undefined' && isCouponApplied) {
+            msg += `🎁 *الكوبون:* FIVE20 (مفعّل)\n`;
+        }
+
         msg += `💰 *الإجمالي النهائي:* ${Math.round(finalTotal)} ريال\n\n`;
         msg += `💳 *طريقة الدفع:* ${payment}\n`;
         msg += `🏠 *العنوان الوصفي:* ${manualAddr}\n`;
         msg += `📍 *موقع العميل (GPS):* \n${mapLink}\n\n`;
         
-        // أرقام الإدارة والدعم
+        // أرقام الإدارة والدعم الفني
         msg += "🟢 مسئول الطلبات: 775185889\n";
         msg += "🏢 الإدارة العامة: 772111598\n";
         msg += "🛠️ الدعم الفني: 774245506\n";
         msg += "☎️ استفسارات: 781110052\n\n";
         msg += "شكراً لاختياركم البرق للتوصيل ⚡";
 
-        // رقم المستلم الرئيسي (مسئول الطلبات)
+        // رقم مسئول الطلبات الرئيسي
         const orderManager = "775185889"; 
         
-        // فتح الواتساب وإرسال الرسالة
+        // فتح الواتساب
         window.open(`https://wa.me/967${orderManager}?text=${encodeURIComponent(msg)}`, '_blank');
     };
 }
