@@ -73,14 +73,27 @@
         </div>
     </header>
 
-    <div id="mobile-menu" class="fixed inset-0 bg-[#0D1B2A] z-[5000] hidden flex flex-col items-center justify-center gap-8 text-white text-right">
-        <button onclick="toggleMobileMenu()" class="absolute top-6 right-6 text-4xl">✕</button>
-        <a href="index.html" class="text-2xl font-black italic">الرئيسية</a>
-        <a href="restaurants.html" class="text-2xl font-black italic text-barq-orange">المطاعم</a>
-        <a href="offers.html" class="text-2xl font-black italic">العروض 🔥</a>
-        <a href="about.html" class="text-2xl font-black italic">من نحن</a>
+    <div id="mobile-menu" class="fixed inset-0 bg-white z-[5000] flex flex-col transition-transform duration-300 translate-x-full shadow-2xl">
+        <div class="p-6 flex justify-between items-center border-b">
+            <div class="flex items-center gap-1">
+                <span class="text-barq-blue font-black text-2xl italic tracking-tighter">البرق</span>
+                <span class="text-barq-orange font-black text-2xl italic tracking-tighter">للتوصيل</span>
+            </div>
+            <button onclick="toggleMobileMenu()" class="text-3xl text-gray-800 p-2">✕</button>
+        </div>
+    
+        <div class="flex flex-col p-8 gap-6 text-right">
+            <a href="index.html" class="text-xl font-black text-gray-700 hover:text-barq-orange border-b border-gray-50 pb-4">🏠 الرئيسية</a>
+            <a href="restaurants.html" class="text-xl font-black text-barq-orange border-b border-gray-50 pb-4">🏢 المطاعم</a>
+            <a href="offers.html" class="text-xl font-black text-gray-700 hover:text-barq-orange border-b border-gray-50 pb-4">🔥 العروض الحصرية</a>
+            <a href="about.html" class="text-xl font-black text-gray-700 hover:text-barq-orange border-b border-gray-50 pb-4">ℹ️ من نحن</a>
+        </div>
+    
+        <div class="mt-auto p-8 bg-gray-50 text-center rounded-t-[2rem]">
+            <p class="text-xs text-gray-400 font-bold mb-2 italic">خدمة العملاء</p>
+            <p class="text-xl font-black text-barq-blue tracking-widest">772111598</p>
+        </div>
     </div>
-
     <main class="pt-28 pb-16">
         <div class="container mx-auto px-4 text-center">
              <input type="hidden" id="selected-restaurant-name" value="مطعم غير محدد">
