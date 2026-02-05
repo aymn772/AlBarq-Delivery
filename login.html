@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>دخول نظام البرق ⚡</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Cairo', sans-serif; background: #f4f7fe; } </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white p-8 rounded-[30px] shadow-xl w-full max-w-md border border-gray-100 text-center">
+        <h1 class="text-2xl font-black text-gray-800 mb-6">تسجيل الدخول للإدارة</h1>
+        
+        <div class="space-y-4 text-right">
+            <div>
+                <label class="text-sm font-black mr-2">اسم المستخدم</label>
+                <input type="text" id="username" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:border-blue-500 font-bold" placeholder="ايمن">
+            </div>
+            <div>
+                <label class="text-sm font-black mr-2">كلمة المرور</label>
+                <input type="password" id="password" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:border-blue-500 font-bold" placeholder="123456">
+            </div>
+            <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:bg-blue-700 transition-all">دخول</button>
+            <p id="msg" class="text-center text-red-500 font-bold text-sm mt-2"></p>
+        </div>
+    </div>
+
+    <script>
+        // دالة "التطهير والتعريف" لضمان وجود حساب أيمن
+        function ensureAdminExists() {
+            let users = JSON.parse(localStorage.getItem('barq_users'));
+            
+            // إذا كانت القائمة فارغة أو لا تحتوي على أيمن، ننشئه قسرياً
+            if (!users || !users.find(u => u.user === 'ايمن')) {
+                users = [{ user: 'ايمن', pass: '123456', role: 'admin' }];
+                localStorage.setItem('barq_users', JSON.stringify(users));
+                console.log("تم تحديث قاعدة البيانات بحساب المدير الرئيسي");
+            }
+        }
+
+        function handleLogin() {
+            ensureAdminExists(); // التأكد من وجود الحساب قبل الفحص
+            
+            const uInput = document.getElementById('username').value.trim();
+            const pInput = document.getElementById('password').value.trim();
+            const msg = document.getElementById('msg');
+
+            const users = JSON.parse(localStorage.getItem('barq_users'));
+            const userFound = users.find(u => u.user === uInput && u.pass === pInput);
+
+            if (userFound) {
+                localStorage.setItem('activeSession', JSON.stringify(userFound));
+                msg.style.color = "green";
+                msg.innerText = "تم التحقق بنجاح.. جاري الدخول ⚡";
+                
+                // التوجيه لملف الإدارة (barq-admin.html)
+                setTimeout(() => {
+                    window.location.href = 'barq-admin.html';
+                }, 500);
+            } else {
+                msg.innerText = "⚠️ البيانات غير صحيحة! تأكد من كتابة: ايمن";
+            }
+        }
+
+        // تشغيل التأكد بمجرد تحميل الصفحة
+        window.onload = ensureAdminExists;
+    </script>
+</body>
+</html>

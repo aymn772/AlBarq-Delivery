@@ -3,449 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>العروض الحصرية | البرق للتوصيل</title>
+    <title>عروض البرق للتوصيل - أقوى الخصومات ⚡</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { 
-                        'barq-blue': '#0057FF', 
-                        'barq-orange': '#FF6B00', 
-                        'barq-dark': '#0F172A' 
-                    },
-                    fontFamily: { cairo: ['Cairo', 'sans-serif'] },
-                }
-            }
-        }
-    </script>
-
     <style>
-        * { font-family: 'Cairo', sans-serif !important; }
+        body { font-family: 'Cairo', sans-serif; background-color: #fcfdfe; margin: 0; padding: 0; }
         
-        /* الهيدر الزجاجي */
-        .glass-header { 
-            background: rgba(255, 255, 255, 0.85); 
-            backdrop-filter: blur(12px); 
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+        /* الهيدر الموحد مع شعار مائل */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 6%; background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            position: fixed; top: 0; left: 0; right: 0; z-index: 2000;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05); height: 80px;
         }
 
-        /* روابط التنقل والخط البرتقالي */
-        .nav-link { position: relative; transition: all 0.3s; }
-        .nav-link::after {
-            content: ''; position: absolute; width: 0; height: 3px;
-            bottom: -6px; right: 0; background-color: #FF6B00;
-            transition: width 0.3s ease; border-radius: 10px;
+        .nav-links a { text-decoration: none; color: #4b5563; font-weight: 800; font-size: 15px; transition: 0.3s; position: relative; }
+        .nav-links a.active { color: #0057FF; }
+        .nav-links a.active::after {
+            content: ''; position: absolute; bottom: -5px; right: 0;
+            width: 100%; height: 3px; background-color: #FF6B00; border-radius: 2px;
         }
-        .nav-link:hover::after { width: 100%; }
-        .nav-active { color: #FF6B00 !important; font-weight: 900; }
-        .nav-active::after { width: 100% !important; }
 
-        /* البطاقات وتأثيراتها */
-        .offer-card { border-radius: 45px; overflow: hidden; transition: all 0.4s ease; height: 100%; display: flex; flex-direction: column; box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.1); }
-        .offer-card:hover { transform: translateY(-12px); box-shadow: 0 30px 50px -15px rgba(255, 107, 0, 0.2); }
-        .img-container { height: 230px; position: relative; overflow: hidden; }
-        .img-container img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
-        .offer-card:hover .img-container img { transform: scale(1.1); }
+        /* تصميم كروت العروض */
+        .food-card {
+            background: white; border-radius: 24px; padding: 15px;
+            display: flex; align-items: center; gap: 15px;
+            border: 1px solid rgba(0,0,0,0.05); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .food-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0, 87, 255, 0.1); }
+
+        /* السلة الجانبية */
+        #cart-drawer {
+            position: fixed; top: 0; left: 0; height: 100%; width: 100%;
+            max-width: 400px; background: white; z-index: 3001;
+            transform: translateX(-110%); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; box-shadow: 20px 0 50px rgba(0,0,0,0.15);
+        }
+        #cart-drawer.open { transform: translateX(0); }
+        #cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; display: none; backdrop-filter: blur(4px); }
         
-        /* السلة والقائمة */
-        #cart-drawer { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 3001; }
-        .btn-order { background-color: #0F172A; color: white; transition: all 0.3s; cursor: pointer; }
-        .btn-order:hover { background-color: #FF6B00; transform: scale(1.02); }
+        #map { height: 150px; width: 100%; border-radius: 12px; margin-top: 10px; border: 1px solid #ddd; }
 
-        #map { height: 180px; width: 100%; border-radius: 20px; border: 2px solid #f3f4f6; margin: 10px 0; z-index: 10; }
+        .btn-bolt { background: #0057FF; color: white; border-radius: 12px; rotate: 3deg; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 antialiased font-cairo text-right">
+<body>
 
-    <header class="fixed top-0 left-0 right-0 z-[2000] glass-header">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex-shrink-0">
-                <a href="index.html" class="flex items-center gap-1 group">
-                    <span class="text-barq-blue font-black text-2xl italic transition-transform group-hover:-translate-y-1">البرق</span>
-                    <span class="text-barq-orange font-black text-2xl italic transition-transform group-hover:translate-y-1">للتوصيل</span>
-                </a>
+    <header>
+        <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'">
+            <div class="w-10 h-10 btn-bolt flex items-center justify-center shadow-lg">
+                <i class="fas fa-bolt text-white"></i>
             </div>
-            <nav class="hidden md:flex items-center gap-10 font-bold text-gray-700">
-                <a href="index.html" class="nav-link">الرئيسية</a>
-                <a href="restaurants.html" class="nav-link">المطاعم</a>
-                <a href="offers.html" class="nav-link nav-active">العروض 🔥</a>
-                <a href="about.html" class="nav-link">من نحن</a>
-            </nav>
-            <div class="flex items-center gap-3">
-                <button onclick="openCart()" class="p-3 bg-white border border-gray-100 rounded-2xl relative shadow-sm active:scale-90 transition group">
-                    <span id="cart-count" class="absolute -top-2 -right-2 bg-barq-orange text-white text-[11px] w-6 h-6 flex items-center justify-center rounded-full font-black shadow-lg hidden">0</span>
-                    <span class="text-2xl group-hover:rotate-12 transition-transform inline-block">🛒</span>
-                </button>
-                <button onclick="toggleMobileMenu()" class="md:hidden p-3 bg-white rounded-2xl text-barq-blue text-2xl shadow-sm">☰</button>
+            <span class="text-xl md:text-2xl font-black text-gray-900 tracking-tighter italic">الـبـرق للتوصيل</span>
+        </div>
+        
+        <nav class="nav-links hidden md:flex gap-8">
+            <a href="index.html">الرئيسية</a>
+            <a href="restaurants.html">المطاعم</a>
+            <a href="offers.html" class="active">العروض</a>
+            <a href="about.html">عن البرق</a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+            <div class="relative cursor-pointer w-11 h-11 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100" onclick="toggleCart(true)">
+                <i class="fas fa-shopping-basket text-lg text-gray-700"></i>
+                <span id="cart-badge" class="absolute -top-1 -right-1 bg-[#FF6B00] text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white font-bold">0</span>
             </div>
+            <a href="admin.html" class="w-11 h-11 bg-gray-900 rounded-full flex items-center justify-center text-white"><i class="fas fa-user-shield text-sm"></i></a>
         </div>
     </header>
 
-    <div id="mobile-menu" class="fixed inset-0 z-[3000] hidden">
-        <div onclick="toggleMobileMenu()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-        <div class="absolute top-0 right-0 h-full w-[280px] bg-white shadow-2xl flex flex-col p-8 transition-transform">
-            <div class="flex justify-between items-center mb-12">
-                <span class="text-barq-blue font-black text-xl italic">القائمة ⚡</span>
-                <button onclick="toggleMobileMenu()" class="text-2xl text-gray-400 hover:text-barq-orange">✕</button>
-            </div>
-            <nav class="flex flex-col gap-8 text-lg font-black text-gray-800">
-                <a href="index.html" class="hover:text-barq-orange">الرئيسية</a>
-                <a href="restaurants.html" class="hover:text-barq-orange">المطاعم</a>
-                <a href="offers.html" class="text-barq-orange">العروض 🔥</a>
-                <a href="about.html" class="hover:text-barq-orange">من نحن</a>
-            </nav>
+    <main class="mt-32 px-[6%] container mx-auto min-h-screen">
+        <div class="flex justify-between items-end mb-8">
+            <h2 class="font-black text-3xl text-gray-800 italic">أقوى العروض <span class="text-[#0057FF]">الحصرية</span> 🔥</h2>
         </div>
-    </div>
-
-    <main class="pt-32 pb-20 container mx-auto px-4">
-        <div class="text-center mb-16">
-            <span class="bg-orange-100 text-barq-orange px-6 py-2 rounded-full text-sm font-bold italic">⚡ توفير أكثر مع البرق للتوصيل</span>
-            <h1 class="text-5xl font-black text-gray-900 mt-6 mb-2 italic">أقوى العروض الحصرية</h1>
-            <p class="text-gray-500 font-bold italic">وفر أموالك واستمتع بأشهى الوجبات في صنعاء</p>
-        </div>
-
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-[1440px] mx-auto">
-            <div class="offer-card bg-white border border-gray-100">
-                <div class="img-container">
-                    <span class="absolute top-5 right-6 bg-yellow-400 text-black text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">عرض الغداء</span>
-                    <img src="https://images.unsplash.com/photo-1541518763669-27fef04b14ea?auto=format&fit=crop&q=80&w=600" alt="وجبة يمنية">
-                </div>
-                <div class="p-8 text-center flex-1 flex flex-col">
-                    <h3 class="text-2xl font-black text-barq-blue mb-2">مطعم الشيباني</h3>
-                    <p class="text-gray-400 font-bold text-xs mb-6 italic">نفر سلته برمة + ملوج حار + سحاوق جبن</p>
-                    <div class="mt-auto">
-                        <p class="text-barq-orange font-black text-3xl mb-6">3500 ريال</p>
-                        <button onclick="addToCart('وجبة الشيباني الملكية', 'الشيباني', 3500)" class="w-full btn-order py-4 rounded-2xl font-black text-lg italic">إضافة للسلة 🛒</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="offer-card bg-white border border-gray-100">
-                <div class="img-container">
-                    <span class="absolute top-5 right-6 bg-green-400 text-white text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">الأكثر مبيعاً</span>
-                    <img src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&q=80&w=600" alt="برجر">
-                </div>
-                <div class="p-8 text-center flex-1 flex flex-col">
-                    <h3 class="text-2xl font-black text-barq-blue mb-2">رويال برجر</h3>
-                    <p class="text-gray-400 font-bold text-xs mb-6 italic">ميكس برجر عائلي + بطاطس + كولا 1 لتر</p>
-                    <div class="mt-auto">
-                        <p class="text-barq-orange font-black text-3xl mb-6">2800 ريال</p>
-                        <button onclick="addToCart('ميكس رويال العائلي', 'رويال برجر', 2800)" class="w-full btn-order py-4 rounded-2xl font-black text-lg italic">إضافة للسلة 🛒</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="offer-card bg-white border border-gray-100">
-                <div class="img-container">
-                    <span class="absolute top-5 right-6 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">توفير إضافي</span>
-                    <img src="https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&q=80&w=600" alt="دجاج">
-                </div>
-                <div class="p-8 text-center flex-1 flex flex-col">
-                    <h3 class="text-2xl font-black text-barq-blue mb-2">رويال برجر</h3>
-                    <p class="text-gray-400 font-bold text-xs mb-6 italic">2 برجر دجاج كريسبي + بطاطس عائلي</p>
-                    <div class="mt-auto">
-                        <p class="text-barq-orange font-black text-3xl mb-6">3200 ريال</p>
-                        <button onclick="addToCart('2 برجر دجاج كريسبي', 'رويال برجر', 3200)" class="w-full btn-order py-4 rounded-2xl font-black text-lg italic">إضافة للسلة 🛒</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="offer-card bg-white border-2 border-barq-orange">
-                <div class="img-container">
-                    <span class="absolute top-5 right-6 bg-barq-blue text-white text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">خصم 20% 🔥</span>
-                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=600" alt="فايف ستار">
-                </div>
-                <div class="p-8 text-center flex-1 flex flex-col">
-                    <h3 class="text-2xl font-black text-barq-blue mb-2">فايف ستار</h3>
-                    <p class="text-gray-400 font-bold text-xs mb-4 italic">برجر كلاسيك + بطاطس + كوكا كولا</p>
-                    <div class="mt-auto">
-                        <p class="text-gray-400 line-through font-bold text-sm mb-1">3000 ريال</p>
-                        <p class="text-barq-orange font-black text-3xl mb-6">2400 ريال</p>
-                        <button onclick="addToCart('عرض فايف ستار 20%', 'فايف ستار', 2400)" class="w-full bg-barq-blue text-white py-4 rounded-2xl font-black text-lg italic shadow-lg">اطلب العرض الآن 🛒</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-[1440px] mx-auto">
-            
-            <div class="offer-card bg-white border border-gray-100">
-                <div class="img-container">
-                    <span class="absolute top-5 right-6 bg-yellow-400 text-black text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">الأكثر طلباً</span>
-                    <img src="https://images.unsplash.com/photo-1541518763669-27fef04b14ea?auto=format&fit=crop&q=80&w=600" alt="وجبة يمنية">
-                </div>
-                <div class="p-8 text-center flex-1 flex flex-col">
-                    <h3 class="text-2xl font-black text-barq-blue mb-2">مطعم الشيباني</h3>
-                    <p class="text-gray-400 font-bold text-xs mb-6 italic">نفر سلته برمة + ملوج حار + سحاوق جبن</p>
-                    <div class="mt-auto">
-                        <p class="text-barq-orange font-black text-3xl mb-6">3500 ريال</p>
-                        <button onclick="addToCart('وجبة الشيباني الملكية', 'الشيباني', 3500)" class="w-full btn-order py-4 rounded-2xl font-black text-lg italic">إضافة للسلة 🛒</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="offer-card bg-white border border-gray-100">
-                <div class="img-container">
-                    <span class="absolute top-5 right-6 bg-green-400 text-white text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">عرض عائلي</span>
-                    <img src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&q=80&w=600" alt="برجر">
-                </div>
-                <div class="p-8 text-center flex-1 flex flex-col">
-                    <h3 class="text-2xl font-black text-barq-blue mb-2">رويال برجر</h3>
-                    <p class="text-gray-400 font-bold text-xs mb-6 italic">ميكس برجر عائلي + بطاطس + كولا 1 لتر</p>
-                    <div class="mt-auto">
-                        <p class="text-barq-orange font-black text-3xl mb-6">2800 ريال</p>
-                        <button onclick="addToCart('ميكس رويال العائلي', 'رويال برجر', 2800)" class="w-full btn-order py-4 rounded-2xl font-black text-lg italic">إضافة للسلة 🛒</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="offer-card bg-white border border-gray-100">
-                <div class="img-container">
-                    <span class="absolute top-5 right-6 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">عرض المشاوي</span>
-                    <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=600" alt="مشاوي">
-                </div>
-                <div class="p-8 text-center flex-1 flex flex-col">
-                    <h3 class="text-2xl font-black text-barq-blue mb-2">مطعم الخطيب</h3>
-                    <p class="text-gray-400 font-bold text-xs mb-6 italic">صحن مشكل مشاوي (كباب+شيش) + مقبلات</p>
-                    <div class="mt-auto">
-                        <p class="text-barq-orange font-black text-3xl mb-6">4500 ريال</p>
-                        <button onclick="addToCart('صحن مشاوي مشكل', 'الخطيب', 4500)" class="w-full btn-order py-4 rounded-2xl font-black text-lg italic">إضافة للسلة 🛒</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="offer-card bg-white border-2 border-barq-orange">
-                <div class="img-container">
-                    <span class="absolute top-5 right-6 bg-barq-blue text-white text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">خصم خاص 🔥</span>
-                    <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80&w=600" alt="بيتزا">
-                </div>
-                <div class="p-8 text-center flex-1 flex flex-col">
-                    <h3 class="text-2xl font-black text-barq-blue mb-2">بيتزا هات</h3>
-                    <p class="text-gray-400 font-bold text-xs mb-4 italic">2 بيتزا حجم كبير (أي نوع) + أصابع الثوم</p>
-                    <div class="mt-auto">
-                        <p class="text-gray-400 line-through font-bold text-sm mb-1">6000 ريال</p>
-                        <p class="text-barq-orange font-black text-3xl mb-6">4800 ريال</p>
-                        <button onclick="addToCart('عرض 2 بيتزا كبير', 'بيتزا هات', 4800)" class="w-full bg-barq-blue text-white py-4 rounded-2xl font-black text-lg italic shadow-lg">اطلب العرض الآن 🛒</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="offer-card bg-white border border-gray-100">
-                <div class="img-container">
-                    <span class="absolute top-5 right-6 bg-blue-400 text-white text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">فطور يمني</span>
-                    <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=600" alt="فطور">
-                </div>
-                <div class="p-8 text-center flex-1 flex flex-col">
-                    <h3 class="text-2xl font-black text-barq-blue mb-2">مطعم القمة</h3>
-                    <p class="text-gray-400 font-bold text-xs mb-6 italic">كبدة غنمي بلدي + فاصوليا + ملوج</p>
-                    <div class="mt-auto">
-                        <p class="text-barq-orange font-black text-3xl mb-6">3200 ريال</p>
-                        <button onclick="addToCart('وجبة فطور ملكي', 'مطعم القمة', 3200)" class="w-full btn-order py-4 rounded-2xl font-black text-lg italic">إضافة للسلة 🛒</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="offer-card bg-white border border-gray-100">
-                <div class="img-container">
-                    <span class="absolute top-5 right-6 bg-purple-500 text-white text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">وجبة التوفير</span>
-                    <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&q=80&w=600" alt="برجر دجاج">
-                </div>
-                <div class="p-8 text-center flex-1 flex flex-col">
-                    <h3 class="text-2xl font-black text-barq-blue mb-2">فايف ستار</h3>
-                    <p class="text-gray-400 font-bold text-xs mb-6 italic">2 ساندوتش برجر دجاج + بطاطس + كولا</p>
-                    <div class="mt-auto">
-                        <p class="text-barq-orange font-black text-3xl mb-6">1800 ريال</p>
-                        <button onclick="addToCart('توفير برجر دجاج', 'فايف ستار', 1800)" class="w-full btn-order py-4 rounded-2xl font-black text-lg italic">إضافة للسلة 🛒</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="offer-card bg-white border border-gray-100">
-                <div class="img-container">
-                    <span class="absolute top-5 right-6 bg-pink-500 text-white text-[10px] font-black px-4 py-1 rounded-lg z-10 italic">وقت الحلو</span>
-                    <img src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=600" alt="كيك">
-                </div>
-                <div class="p-8 text-center flex-1 flex flex-col">
-                    <h3 class="text-2xl font-black text-barq-blue mb-2">حلويات الأقصى</h3>
-                    <p class="text-gray-400 font-bold text-xs mb-6 italic">كيلو مشكل حلويات شرقية + صحن بسبوسة</p>
-                    <div class="mt-auto">
-                        <p class="text-barq-orange font-black text-3xl mb-6">4000 ريال</p>
-                        <button onclick="addToCart('مشكل حلويات كيلو', 'حلويات الأقصى', 4000)" class="w-full btn-order py-4 rounded-2xl font-black text-lg italic">إضافة للسلة 🛒</button>
-                    </div>
-                </div>
-            </div>
-            
-        </div>
+        
+        <div id="offers-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </main>
 
-    <div id="cart-overlay" onclick="closeCart()" class="fixed inset-0 bg-black/60 z-[3000] hidden backdrop-blur-sm"></div>
-    <div id="cart-drawer" class="fixed top-0 left-0 h-full w-full max-w-[420px] bg-white transform -translate-x-full flex flex-col shadow-2xl border-r-[10px] border-barq-orange">
-        
-        <div class="p-6 bg-barq-blue text-white flex justify-between items-center shadow-lg">
-            <h2 class="font-black text-2xl italic">🛍️ سلّة التوفير</h2>
-            <button onclick="closeCart()" class="text-3xl">✕</button>
+    <div id="cart-overlay" onclick="toggleCart(false)"></div>
+    <div id="cart-drawer">
+        <div class="p-5 bg-gray-900 text-white flex justify-between items-center">
+            <h2 class="font-black italic flex items-center gap-2"><i class="fas fa-shopping-bag text-[#0057FF]"></i> سلة العروض</h2>
+            <button onclick="toggleCart(false)" class="text-3xl">&times;</button>
         </div>
-
-        <div class="flex-1 overflow-y-auto p-5 space-y-6 bg-gray-50/50">
-            <div id="cart-items" class="space-y-4"></div>
-
-            <div class="bg-white p-6 rounded-[35px] shadow-sm border border-gray-100 space-y-5">
-                <div>
-                    <label class="block text-barq-blue font-black text-sm mb-2 mr-2 italic">📱 رقم هاتفك</label>
-                    <input type="tel" id="customer-phone" placeholder="7XXXXXXXX" class="w-full p-4 rounded-2xl border-2 text-center font-black text-xl outline-none focus:border-barq-orange">
-                </div>
-                
-                <div>
-                    <label class="block text-barq-blue font-black text-sm mb-2 mr-2 italic">🏠 العنوان بالتفصيل</label>
-                    <input type="text" id="manual-address" placeholder="الحي، الشارع، أقرب معلم" class="w-full p-4 rounded-2xl border-2 text-right font-bold text-sm outline-none focus:border-barq-orange">
-                </div>
-                
-                <div>
-                    <label class="block text-barq-blue font-black text-sm mb-2 mr-2 italic">📍 موقع التوصيل (GPS)</label>
-                    <div id="map"></div>
-                    <button onclick="getCurrentLocation()" class="w-full bg-blue-50 text-barq-blue py-3 rounded-xl text-xs font-black border border-blue-100">تحديد موقعي التلقائي 🎯</button>
-                    <input type="hidden" id="location-coords">
-                </div>
-
-                <div>
-                    <label class="block text-barq-blue font-black text-sm mb-2 mr-2 italic">💳 طريقة الدفع</label>
-                    <select id="payment-method" class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold text-sm outline-none text-right appearance-none">
-                        <option value="نقد عند الاستلام (كاش)">نقد عند الاستلام (كاش) 💵</option>
-                        <option value="كريمي (ام فلوس)">كريمي (ام فلوس) 🏦</option>
-                        <option value="محفظة جوالي (YKB)">محفظة جوالي (YKB) 📱</option>
-                        <option value="محفظة بيس (Pace)">محفظة بيس (Pace) 💸</option>
-                        <option value="محفظة جيب (Pocket)">محفظة جيب (Pocket) 💳</option>
-                        <option value="موبايل موني (كاك)">موبايل موني 📲</option>
-                        <option value="محفظة فلوسك">محفظة فلوسك 💰</option>
-                    </select>
-                </div>
+        <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50"></div>
+        <div class="p-5 border-t bg-white space-y-3">
+            <input type="tel" id="cus-phone" placeholder="رقم الموبايل (7xxxxxxxx)" class="w-full p-4 bg-gray-100 rounded-2xl text-right font-bold outline-none border-2 border-transparent focus:border-[#0057FF] transition-all">
+            
+            <div class="flex gap-2">
+                <button onclick="applyCoupon()" class="bg-gray-800 text-white px-5 rounded-xl font-black">تفعيل</button>
+                <input type="text" id="coupon-code" placeholder="كود الخصم" class="flex-1 p-3 bg-gray-100 rounded-xl text-right font-bold outline-none">
             </div>
-        </div>
 
-        <div class="p-6 bg-white border-t">
-            <div class="flex justify-between items-center mb-6 font-black italic">
-                <span id="cart-total" class="text-3xl text-barq-blue">0 ريال</span>
-                <span class="text-gray-400">الإجمالي:</span>
+            <div class="py-2">
+                <button onclick="getUserLocation()" class="w-full bg-blue-50 text-[#0057FF] py-3 rounded-xl font-black text-sm border border-blue-100 flex items-center justify-center gap-2">
+                    <i class="fas fa-location-arrow"></i> تحديد موقعي الآن (GPS)
+                </button>
+                <div id="map"></div>
             </div>
-            <button onclick="sendToWA()" class="w-full bg-[#25D366] text-white py-5 rounded-[25px] font-black text-xl shadow-xl active:scale-95 transition-all">إتمام الطلب (واتساب) ✅</button>
+
+            <div class="flex justify-between items-center py-4 border-t border-dashed">
+                <span class="font-black text-gray-500">الإجمالي النهائي:</span>
+                <span id="cart-total" class="text-2xl font-black text-[#0057FF]">0 ريال</span>
+            </div>
+            
+            <button onclick="checkoutWhatsApp()" class="w-full bg-[#25D366] text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-xl hover:scale-[1.02] transition-transform">
+                إرسال الطلب عبر واتساب <i class="fab fa-whatsapp text-2xl"></i>
+            </button>
         </div>
     </div>
 
+    <footer class="bg-gray-900 text-white py-12 px-[6%] mt-20 text-center">
+        <p class="font-black italic text-[#0057FF] mb-2">البرق للتوصيل⚡</p>
+        <p class="text-gray-500 font-bold text-xs text-center">جميع الحقوق محفوظة © 2026</p>
+    </footer>
+
     <script>
-        let cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+        const ADMIN_PHONE = "967781110052";
+        let discountPercent = 0;
         let map, marker;
 
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
+        // 1. جلب البيانات المدمجة (القديمة + لوحة الإدارة)
+        function loadOffers() {
+            const container = document.getElementById('offers-container');
+            
+            // العروض القديمة التي كانت في الكود
+            const staticOffers = [
+                { id: 101, name: "برمة لحم بلدي عائلية", price: 4500, image: "https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=400" },
+                { id: 102, name: "وجبة شواية (حبة كاملة)", price: 2800, image: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400" },
+                { id: 103, name: "برجر البرق الملكي (دبل)", price: 1800, image: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=400" },
+                { id: 104, name: "بيتزا عائلية سوبريم", price: 3500, image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400" }
+            ];
+
+            // جلب العروض من لوحة الإدارة
+            const adminOffers = JSON.parse(localStorage.getItem('barq_offers')) || [];
+
+            // الدمج
+            const allOffers = [...staticOffers, ...adminOffers];
+
+            container.innerHTML = allOffers.map((o, i) => `
+                <div class="food-card animate-card" style="animation-delay: ${i*0.1}s">
+                    <img src="${o.image || o.img}" class="w-24 h-24 rounded-2xl object-cover shadow-md border-2 border-white">
+                    <div class="flex-1 text-right">
+                        <h3 class="font-black text-gray-800 mb-1">${o.name}</h3>
+                        <p class="text-[#0057FF] font-black text-xl">${o.price} <span class="text-xs">ر.ي</span></p>
+                    </div>
+                    <button onclick="addToCart('${o.name}', ${o.price}, ${o.id})" class="bg-[#0057FF] text-white w-12 h-12 rounded-2xl hover:bg-orange-500 transition-all shadow-lg active:scale-90">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            `).join('');
         }
 
-        function openCart() { 
-            document.getElementById('cart-drawer').classList.remove('-translate-x-full'); 
-            document.getElementById('cart-overlay').classList.remove('hidden'); 
-            if(!map) setTimeout(initMap, 300);
-        }
-
-        function closeCart() { 
-            document.getElementById('cart-drawer').classList.add('-translate-x-full'); 
-            document.getElementById('cart-overlay').classList.add('hidden'); 
-        }
-
-        function addToCart(name, restaurant, price) {
-            cart.push({ name, restaurant, price });
-            updateUI();
-            openCart();
-        }
-
-        function remove(index) {
-            cart.splice(index, 1);
-            updateUI();
-        }
-
-        function updateUI() {
+        // دالة السلة (تعمل مع LocalStorage الموحد)
+        function getCart() { return JSON.parse(localStorage.getItem('barq_cart')) || []; }
+        function saveCart(cart) { 
             localStorage.setItem('barq_cart', JSON.stringify(cart));
-            const container = document.getElementById('cart-items');
+            updateBadge();
+        }
+
+        function addToCart(name, price, id) {
+            let cart = getCart();
+            const existing = cart.find(i => i.name === name);
+            if(existing) {
+                existing.qty++;
+            } else {
+                cart.push({ id, name, price, qty: 1 });
+            }
+            saveCart(cart);
+            toggleCart(true);
+        }
+
+        function toggleCart(show) {
+            const drawer = document.getElementById('cart-drawer');
+            const overlay = document.getElementById('cart-overlay');
+            if(show) {
+                drawer.classList.add('open');
+                overlay.style.display = 'block';
+                renderCartUI();
+                setTimeout(initMap, 500);
+            } else {
+                drawer.classList.remove('open');
+                overlay.style.display = 'none';
+            }
+        }
+
+        function renderCartUI() {
+            const cart = getCart();
+            const list = document.getElementById('cart-items');
             let total = 0;
             
-            container.innerHTML = cart.map((item, index) => {
-                total += item.price;
+            if(cart.length === 0) {
+                list.innerHTML = '<div class="text-center py-10"><i class="fas fa-shopping-basket text-4xl text-gray-200 mb-2 block"></i><p class="text-gray-400 font-bold">السلة فارغة</p></div>';
+                document.getElementById('cart-total').innerText = "0 ريال";
+                return;
+            }
+
+            list.innerHTML = cart.map((item, index) => {
+                total += (item.price * item.qty);
                 return `
-                <div class="bg-white p-4 rounded-3xl flex justify-between items-center shadow-sm border-r-8 border-barq-orange">
-                    <button onclick="remove(${index})" class="text-red-500 font-black p-2 hover:bg-red-50 rounded-full">✕</button>
+                <div class="bg-white p-4 rounded-2xl flex justify-between items-center border border-gray-100 shadow-sm">
                     <div class="text-right">
-                        <p class="text-sm font-black text-gray-800">${item.name}</p>
-                        <p class="text-barq-orange text-xs font-bold">${item.price} ريال</p>
+                        <h4 class="font-black text-sm text-gray-800">${item.name}</h4>
+                        <p class="text-[#0057FF] font-black text-sm">${item.price * item.qty} ر.ي</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="updateQty(${index}, 1)" class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg font-bold">+</button>
+                        <span class="font-bold text-sm w-4 text-center">${item.qty}</span>
+                        <button onclick="updateQty(${index}, -1)" class="w-8 h-8 bg-red-50 text-red-500 rounded-lg font-bold">-</button>
                     </div>
                 </div>`;
             }).join('');
 
-            document.getElementById('cart-total').innerText = total + " ريال";
-            document.getElementById('cart-count').innerText = cart.length;
-            document.getElementById('cart-count').classList.toggle('hidden', cart.length === 0);
+            if(discountPercent > 0) total = total * (1 - discountPercent/100);
+            document.getElementById('cart-total').innerText = Math.round(total) + " ريال";
         }
 
+        function updateQty(index, delta) {
+            let cart = getCart();
+            cart[index].qty += delta;
+            if(cart[index].qty <= 0) cart.splice(index, 1);
+            saveCart(cart);
+            renderCartUI();
+        }
+
+        function updateBadge() {
+            const cart = getCart();
+            document.getElementById('cart-badge').innerText = cart.reduce((s, i) => s + i.qty, 0);
+        }
+
+        // الخرائط والواتساب
         function initMap() {
             if(map) return;
-            map = L.map('map').setView([15.3694, 44.1910], 13);
+            map = L.map('map').setView([15.3502, 44.2075], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            marker = L.marker([15.3694, 44.1910], {draggable: true}).addTo(map);
-            
-            marker.on('moveend', (e) => {
-                const pos = e.target.getLatLng();
-                document.getElementById('location-coords').value = pos.lat + "," + pos.lng;
-            });
+            marker = L.marker([15.3502, 44.2075], {draggable: true}).addTo(map);
         }
 
-        function getCurrentLocation() {
+        function getUserLocation() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    map.setView([lat, lng], 16);
+                navigator.geolocation.getCurrentPosition(p => {
+                    const lat = p.coords.latitude, lng = p.coords.longitude;
+                    map.setView([lat, lng], 17);
                     marker.setLatLng([lat, lng]);
-                    document.getElementById('location-coords').value = lat + "," + lng;
-                }, () => alert("يرجى تفعيل الـ GPS في جهازك"));
+                });
             }
         }
 
-        function sendToWA() {
-            const phone = document.getElementById('customer-phone').value;
-            const address = document.getElementById('manual-address').value;
-            const payment = document.getElementById('payment-method').value;
-            const coords = document.getElementById('location-coords').value;
+        function checkoutWhatsApp() {
+            const cart = getCart();
+            const phone = document.getElementById('cus-phone').value;
+            if(!phone || cart.length === 0) return alert("يرجى إدخال رقم هاتفك");
             
-            if(!phone || cart.length === 0) {
-                alert("يرجى إدخال رقم هاتفك واختيار عرض واحد على الأقل.");
-                return;
-            }
-
-            localStorage.setItem('saved_phone', phone);
+            const latlng = marker.getLatLng();
+            const geoLink = `https://www.google.com/maps?q=${latlng.lat},${latlng.lng}`;
             
-            let itemsTxt = "";
-            cart.forEach((item, i) => {
-                itemsTxt += `${i+1}. ${item.name} (${item.restaurant})\n`;
-            });
+            let msg = `*طلب عروض (البرق ⚡)*\n\n`;
+            cart.forEach(i => msg += `• ${i.name} (×${i.qty})\n`);
+            msg += `\n💰 *الإجمالي:* ${document.getElementById('cart-total').innerText}`;
+            msg += `\n📞 *الهاتف:* ${phone}`;
+            msg += `\n📍 *الموقع:* ${geoLink}`;
             
-            let msg = `*طلب عروض جديد - البرق للتوصيل* ⚡\n━━━━━━━━━━━━━━\n${itemsTxt}━━━━━━━━━━━━━━\n💰 *الإجمالي:* ${document.getElementById('cart-total').innerText}\n━━━━━━━━━━━━━━\n📞 *هاتف:* ${phone}\n🏠 *العنوان:* ${address}\n💳 *الدفع:* ${payment}`;
-            
-            if(coords) {
-                msg += `\n📍 *الموقع:* https://www.google.com/maps?q=${coords}`;
-            }
-            
-            window.open(`https://wa.me/967781110052?text=${encodeURIComponent(msg)}`, '_blank');
+            window.open(`https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(msg)}`);
         }
 
-        window.onload = () => { 
-            updateUI(); 
-            const saved = localStorage.getItem('saved_phone'); 
-            if(saved) document.getElementById('customer-phone').value = saved; 
-        }
+        window.onload = () => { loadOffers(); updateBadge(); };
     </script>
 </body>
 </html>

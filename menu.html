@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قائمة الطعام | البرق ⚡</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root { --main-blue: #0057FF; --main-orange: #FF6B00; }
+        body { font-family: 'Cairo', sans-serif; background: #fcfdfe; color: #1e293b; overflow-x: hidden; }
+
+        .item-card {
+            transition: all 0.3s ease;
+            border-radius: 24px;
+        }
+        .item-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px -10px rgba(0, 87, 255, 0.1); }
+
+        #side-cart {
+            position: fixed; top: 0; left: 0; bottom: 0; width: 350px; 
+            background: white; z-index: 2000; transform: translateX(-100%);
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 20px 0 50px rgba(0,0,0,0.15);
+        }
+        #side-cart.open { transform: translateX(0); }
+        .cart-overlay {
+            position: fixed; inset: 0; background: rgba(0, 5, 20, 0.4); 
+            z-index: 1999; display: none; backdrop-filter: blur(8px);
+        }
+        .cart-overlay.active { display: block; }
+
+        .add-btn {
+            background: var(--main-blue); color: white; width: 40px; height: 40px;
+            border-radius: 14px; transition: 0.3s; display: flex; align-items: center; justify-content: center;
+        }
+        .add-btn:active { transform: scale(0.8); }
+
+        .res-banner-container {
+            height: 250px; border-radius: 0 0 40px 40px; overflow: hidden; position: relative;
+        }
+    </style>
+</head>
+<body class="pb-24">
+
+    <nav class="fixed top-0 inset-x-0 bg-white/90 backdrop-blur-md z-[1000] py-4 px-6 border-b border-gray-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <button onclick="history.back()" class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-700 hover:bg-gray-100 transition">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <div>
+                    <span id="nav-res-name" class="font-black text-lg block leading-none text-gray-900 italic">المطعم</span>
+                    <span class="text-[10px] text-blue-600 font-bold uppercase tracking-widest">منيو البرق ⚡</span>
+                </div>
+            </div>
+            
+            <button onclick="toggleCart()" class="relative w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                <i class="fas fa-shopping-basket text-lg"></i>
+                <span id="cart-badge" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] w-6 h-6 rounded-full flex items-center justify-center border-4 border-white font-black">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <header class="mt-[70px]">
+        <div class="res-banner-container mx-auto max-w-6xl md:mt-4 md:rounded-[40px]">
+            <img id="res-banner" src="" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8">
+                <h1 id="res-name-title" class="text-3xl font-black text-white mb-2 italic">...</h1>
+                <p id="res-address" class="text-white/80 text-sm font-bold"><i class="fas fa-map-marker-alt ml-1"></i> ...</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 mt-12">
+        <div id="menu-sections" class="space-y-12">
+            </div>
+    </main>
+
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <aside id="side-cart" class="flex flex-col">
+        <div class="p-8 border-b flex justify-between items-center">
+            <h2 class="text-2xl font-black text-gray-900 italic">سلتك 🛒</h2>
+            <button onclick="toggleCart()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div id="cart-items-list" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+        <div class="p-8 border-t bg-white">
+            <div class="flex justify-between items-center mb-6">
+                <span class="text-gray-400 font-black">الإجمالي</span>
+                <span id="cart-total-price" class="text-2xl font-black text-blue-600">0 ر.ي</span>
+            </div>
+            <button onclick="location.href='cart.html'" class="w-full bg-[#0057FF] text-white py-5 rounded-[22px] font-black text-lg shadow-xl hover:bg-blue-700 transition-all">
+                مراجعة الطلب والدفع
+            </button>
+        </div>
+    </aside>
+
+    <script src="script.js"></script>
+
+    <script>
+        // --- المنطق المدمج بين القديم والجديد ---
+        const selectedResId = localStorage.getItem('selectedRestaurantId');
+
+        function initPage() {
+            // 1. محاولة جلب المطاعم من localStorage (المدخلة من لوحة الإدارة)
+            let adminRestaurants = JSON.parse(localStorage.getItem('barq_restaurants')) || [];
+            
+            // 2. محاولة جلب المطاعم من script.js (المدخلة يدوياً سابقاً)
+            // ملاحظة: افترضنا أن المصفوفة في script.js اسمها defaultRestaurants كما في كودك السابق
+            let manualRestaurants = (typeof defaultRestaurants !== 'undefined') ? defaultRestaurants : [];
+
+            // دمج القائمتين للبحث فيهما
+            let allAvailableRestaurants = [...adminRestaurants, ...manualRestaurants];
+
+            // 3. البحث عن المطعم المختار
+            const restaurant = allAvailableRestaurants.find(r => r.id == selectedResId);
+            
+            if (restaurant) {
+                document.getElementById('nav-res-name').innerText = restaurant.name;
+                document.getElementById('res-name-title').innerText = restaurant.name;
+                document.getElementById('res-address').innerHTML = `<i class="fas fa-map-marker-alt ml-1"></i> ${restaurant.address || restaurant.badge || 'صنعاء'}`;
+                document.getElementById('res-banner').src = restaurant.image || restaurant.img;
+
+                renderMenu(restaurant.menu);
+            } else {
+                // إذا لم يجد شيئاً، يعود لصفحة المطاعم
+                console.error("المطعم غير موجود في البيانات");
+            }
+            updateCartUI();
+        }
+
+        // دالة العرض التي تدعم الأقسام والوجبات العادية
+        function renderMenu(menuData) {
+            const container = document.getElementById('menu-sections');
+            container.innerHTML = '';
+
+            if (Array.isArray(menuData)) {
+                // إذا كان المنيو عبارة عن مصفوفة وجبات مباشرة
+                container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${generateItemsHTML(menuData)}</div>`;
+            } else {
+                // إذا كان المنيو مقسماً لأقسام (مثل: مشويات، مقبلات...)
+                for (const category in menuData) {
+                    container.innerHTML += `
+                        <section>
+                            <h3 class="text-xl font-black mb-6 flex items-center gap-2">
+                                <span class="w-2 h-7 bg-orange-500 rounded-full"></span> ${category}
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                ${generateItemsHTML(menuData[category])}
+                            </div>
+                        </section>`;
+                }
+            }
+        }
+
+        function generateItemsHTML(items) {
+            return items.map(item => `
+                <div class="item-card bg-white p-4 rounded-[30px] flex items-center gap-4 border border-gray-50 shadow-sm">
+                    <img src="${item.img || item.image || 'https://via.placeholder.com/150'}" class="w-24 h-24 rounded-2xl object-cover">
+                    <div class="flex-1">
+                        <h4 class="font-black text-gray-900 text-sm mb-1">${item.name}</h4>
+                        <p class="text-blue-600 font-black text-sm">${Number(item.price).toLocaleString()} ر.ي</p>
+                    </div>
+                    <button onclick="addToCart(${item.id}, '${item.name}', ${item.price}, '${item.img || item.image}')" class="add-btn shadow-md">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // --- نظام السلة ---
+        function addToCart(id, name, price, img) {
+            let cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+            const existing = cart.find(i => i.id === id);
+            if(existing) { existing.qty++; } 
+            else { cart.push({ id, name, price, img, qty: 1 }); }
+            localStorage.setItem('barq_cart', JSON.stringify(cart));
+            updateCartUI();
+            
+            // تنبيه بسيط
+            const btn = event.currentTarget;
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.style.backgroundColor = '#10b981';
+            setTimeout(() => { btn.innerHTML = '<i class="fas fa-plus"></i>'; btn.style.backgroundColor = ''; }, 800);
+        }
+
+        function updateCartUI() {
+            const cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+            const badge = document.getElementById('cart-badge');
+            const listContainer = document.getElementById('cart-items-list');
+            const totalPriceEl = document.getElementById('cart-total-price');
+            
+            let total = 0, count = 0;
+            listContainer.innerHTML = '';
+            
+            cart.forEach(item => {
+                total += (item.price * item.qty);
+                count += item.qty;
+                listContainer.innerHTML += `
+                    <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border">
+                        <div class="flex-1">
+                            <p class="text-xs font-black">${item.name}</p>
+                            <p class="text-[10px] text-blue-600">${item.price} ر.ي</p>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border">
+                            <button onclick="changeQty(${item.id}, -1)" class="text-red-500"><i class="fas fa-minus-circle"></i></button>
+                            <span class="text-xs font-black">${item.qty}</span>
+                            <button onclick="changeQty(${item.id}, 1)" class="text-blue-600"><i class="fas fa-plus-circle"></i></button>
+                        </div>
+                    </div>`;
+            });
+
+            badge.innerText = count;
+            totalPriceEl.innerText = total.toLocaleString() + ' ر.ي';
+        }
+
+        function changeQty(id, delta) {
+            let cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+            const idx = cart.findIndex(i => i.id === id);
+            if(idx !== -1) {
+                cart[idx].qty += delta;
+                if(cart[idx].qty <= 0) cart.splice(idx, 1);
+                localStorage.setItem('barq_cart', JSON.stringify(cart));
+                updateCartUI();
+            }
+        }
+
+        function toggleCart() {
+            document.getElementById('side-cart').classList.toggle('open');
+            document.getElementById('cartOverlay').classList.toggle('active');
+        }
+
+        window.onload = initPage;
+    </script>
+</body>
+</html>

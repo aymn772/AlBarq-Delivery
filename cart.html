@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأكيد الطلب | البرق ⚡</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        :root { --main-blue: #0057FF; --main-orange: #FF6B00; }
+        body { font-family: 'Cairo', sans-serif; background: #fcfdfe; color: #1e293b; text-align: right; }
+        .card { background: white; border-radius: 28px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 15px 35px rgba(0,0,0,0.02); }
+        #map { height: 250px; border-radius: 24px; border: 2px solid #f1f5f9; z-index: 10; width: 100%; }
+        .input-field { background: #f8fafc; border: 2px solid #f1f5f9; border-radius: 16px; padding: 14px; font-weight: 700; width: 100%; transition: 0.3s; outline: none; }
+        .input-field:focus { border-color: var(--main-blue); background: white; }
+    </style>
+</head>
+<body class="pb-10">
+
+    <nav class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md z-[1000] py-4 px-[6%] border-b border-gray-100 flex justify-between items-center">
+        <button onclick="history.back()" class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-700 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+            <i class="fas fa-arrow-right"></i>
+        </button>
+        <span class="text-xl font-black text-gray-900 italic">سلة <span class="text-blue-600">البرق</span> ⚡</span>
+        <div class="w-10"></div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-[6%] mt-28 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="lg:col-span-8 space-y-6">
+            <div class="card p-6">
+                <h3 class="text-lg font-black mb-6 flex items-center gap-3"><i class="fas fa-utensils text-blue-600"></i> ملخص طلبك</h3>
+                <div id="cart-list" class="space-y-4"></div>
+            </div>
+
+            <div class="card p-6">
+                <h3 class="text-lg font-black mb-4 flex items-center gap-3"><i class="fas fa-truck text-blue-600"></i> بيانات التوصيل</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <input type="tel" id="user-phone" placeholder="رقم هاتفك (7xxxxxxxx)" class="input-field">
+                    <input type="text" id="user-address" placeholder="الحي / الشارع / المعلم" class="input-field">
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-bold text-gray-500 italic">حدد موقعك على الخريطة 📍</span>
+                        <button onclick="detectLocation()" class="text-xs font-black bg-blue-50 text-blue-600 px-4 py-2 rounded-xl">
+                            <i class="fas fa-location-arrow ml-1"></i> تحديد موقعي GPS
+                        </button>
+                    </div>
+                    <div id="map"></div>
+                    <p id="location-status" class="text-[11px] font-black text-gray-400 text-center mt-2">اسحب الدبوس الأزرق لتحديد بيتك بدقة</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-4 space-y-6">
+            <div class="card p-6">
+                <h3 class="text-md font-black mb-4">كوبون الخصم</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="coupon-code" placeholder="الكود" class="input-field text-center uppercase text-sm">
+                    <button onclick="applyCoupon()" class="bg-gray-900 text-white px-5 rounded-xl font-black">تفعيل</button>
+                </div>
+            </div>
+
+            <div class="card p-8 bg-gray-900 text-white">
+                <div class="space-y-3 mb-6 text-gray-400 font-bold text-sm">
+                    <div class="flex justify-between"><span>المجموع:</span> <span id="subtotal">0 ر.ي</span></div>
+                    <div class="flex justify-between text-green-400"><span>الخصم:</span> <span id="discount">0 ر.ي</span></div>
+                </div>
+                <div class="flex justify-between text-2xl font-black border-t border-gray-800 pt-6 mb-8">
+                    <span>الإجمالي:</span> <span id="total-price" class="text-blue-400">0 ر.ي</span>
+                </div>
+                <button onclick="sendFinalOrder()" class="w-full bg-[#25D366] text-white py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-3 shadow-lg">
+                    <i class="fab fa-whatsapp text-2xl"></i> تأكيد وإرسال عبر واتساب
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const ADMIN_PHONE = "967775185889"; 
+        let map, marker;
+        let discountVal = 0;
+        let couponName = "لا يوجد";
+
+        function initMap() {
+            map = L.map('map').setView([15.3502, 44.2075], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            marker = L.marker([15.3502, 44.2075], {draggable: true}).addTo(map);
+        }
+
+        function detectLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((p) => {
+                    const lat = p.coords.latitude, lng = p.coords.longitude;
+                    map.setView([lat, lng], 17);
+                    marker.setLatLng([lat, lng]);
+                    document.getElementById('location-status').innerText = "🎯 تم تحديد موقعك";
+                });
+            }
+        }
+
+        function loadCart() {
+            const cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+            const list = document.getElementById('cart-list');
+            let subtotal = 0;
+
+            if(cart.length === 0) {
+                list.innerHTML = `<p class="text-center py-5 font-bold text-gray-400">السلة فارغة</p>`;
+                return;
+            }
+
+            // ملاحظة: جلب اسم المطعم المختار حالياً إذا لم يكن مخزناً مع الصنف
+            const currentResName = localStorage.getItem('last_visited_res_name') || "مطعم البرق";
+
+            list.innerHTML = cart.map((item, index) => {
+                subtotal += (item.price * item.qty);
+                // تحديث اسم المطعم إذا كان ناقصاً
+                if(!item.restaurantName) item.restaurantName = currentResName;
+                
+                return `
+                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div>
+                        <p class="font-black text-gray-800 text-sm">${item.name} (${item.qty}x)</p>
+                        <p class="text-[10px] text-blue-600 font-bold">المطعم: ${item.restaurantName}</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="font-black text-sm">${(item.price * item.qty).toLocaleString()} ر.ي</span>
+                        <button onclick="removeItem(${index})" class="text-red-400"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            document.getElementById('subtotal').innerText = subtotal.toLocaleString() + " ر.ي";
+            document.getElementById('discount').innerText = discountVal.toLocaleString() + " ر.ي";
+            document.getElementById('total-price').innerText = (subtotal - discountVal).toLocaleString() + " ر.ي";
+        }
+
+        function removeItem(index) {
+            let cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+            cart.splice(index, 1);
+            localStorage.setItem('barq_cart', JSON.stringify(cart));
+            loadCart();
+        }
+
+        function applyCoupon() {
+            const code = document.getElementById('coupon-code').value.toUpperCase();
+            if(code === "BARQ20") {
+                discountVal = 500;
+                couponName = "BARQ20 (500 ر.ي)";
+                alert("تم تفعيل الخصم");
+            } else {
+                discountVal = 0;
+                couponName = "لا يوجد";
+                alert("كود خاطئ");
+            }
+            loadCart();
+        }
+
+        function sendFinalOrder() {
+            const cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+            const phone = document.getElementById('user-phone').value;
+            const address = document.getElementById('user-address').value;
+            const subtotalText = document.getElementById('subtotal').innerText;
+            const totalText = document.getElementById('total-price').innerText;
+
+            if(cart.length === 0 || !phone || !address) return alert("يرجى ملأ جميع البيانات");
+
+            const pos = marker.getLatLng();
+            const geoLink = `https://www.google.com/maps?q=${pos.lat},${pos.lng}`;
+
+            let message = `*⚡ طلب جديد - البرق ⚡*\n`;
+            message += `----------------------------\n`;
+            message += `📞 *رقم العميل:* ${phone}\n`;
+            message += `🏠 *العنوان:* ${address}\n`;
+            message += `----------------------------\n`;
+            message += `🛒 *تفاصيل الطلب:*\n\n`;
+
+            cart.forEach((item, i) => {
+                message += `*${i+1}. ${item.name}*\n`;
+                message += `   - الكمية: ${item.qty}\n`;
+                message += `   - السعر: ${item.price.toLocaleString()} ر.ي\n`;
+                message += `   - المطعم: ${item.restaurantName || "البرق"}\n\n`;
+            });
+
+            message += `----------------------------\n`;
+            message += `💰 *المجموع الفرعي:* ${subtotalText}\n`;
+            message += `🎁 *الخصم:* ${couponName}\n`;
+            message += `✅ *الإجمالي الصافي:* ${totalText}\n`;
+            message += `----------------------------\n`;
+            message += `📍 *الموقع على الخريطة:* \n${geoLink}`;
+
+            window.open(`https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        window.onload = () => { initMap(); loadCart(); };
+    </script>
+</body>
+</html>

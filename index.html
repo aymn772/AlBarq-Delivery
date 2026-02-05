@@ -3,319 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>البرق للتوصيل | أسرع خدمة توصيل في صنعاء</title>
+    <title>البرق للتوصيل ⚡ | الرئيسية</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'barq-blue': '#0057FF',
-                        'barq-orange': '#FF6B00',
-                    }
-                }
-            }
+    <style>
+        body, h1, h2, h3, h4, h5, h6, p, a, span, button, input, select { font-family: 'Cairo', sans-serif; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade { animation: fadeIn 0.5s ease-out forwards; }
+
+        header {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            padding: 12px 6%; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05); position: fixed; top: 0; left: 0; right: 0; z-index: 2000;
         }
-    </script>
 
-<style>
-    /* الخط العام للموقع */
-    * { font-family: 'Cairo', sans-serif !important; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { text-decoration: none; color: #4b5563; font-weight: 800; transition: 0.3s; font-size: 15px; position: relative; }
+        .nav-links a:hover, .nav-links a.active { color: #0057FF; }
+        
+        /* علامة الصفحة النشطة */
+        .nav-links a.active::after {
+            content: ''; position: absolute; bottom: -5px; right: 0; width: 100%; height: 3px; background: #FF6B00; border-radius: 2px;
+        }
 
-    /* تأثير الهيدر الزجاجي الشفاف */
-    .glass-header { 
-        background: rgba(255, 255, 255, 0.85); 
-        backdrop-filter: blur(12px); 
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(229, 231, 235, 0.5);
-    }
+        .icon-btn { width: 42px; height: 42px; background: #f8f9fa; border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; color: #374151; border: 1px solid #eee; }
+        .icon-btn:hover { background: #eff6ff; color: #0057FF; border-color: #0057FF; }
+        
+        .cart-wrapper { position: relative; }
+        .cart-count { position: absolute; top: -5px; right: -5px; background: #ff3b30; color: white; width: 18px; height: 18px; border-radius: 50%; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
 
-    /* إعدادات الروابط والخط البرتقالي المتحرك */
-    .nav-link {
-        position: relative;
-        transition: color 0.3s ease;
-    }
+        /* السلة الجانبية الموحدة */
+        #side-cart { 
+            position: fixed; top: 0; left: 0; height: 100%; width: 100%; max-width: 400px; 
+            background: white; z-index: 3000; transform: translateX(-110%); 
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column;
+            box-shadow: 20px 0 50px rgba(0,0,0,0.1);
+        }
+        #side-cart.open { transform: translateX(0); }
+        #cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 2500; display: none; }
 
-    .nav-link::after {
-        content: '';
-        position: absolute;
-        width: 0;
-        height: 3px;
-        bottom: -6px;
-        right: 0;
-        background-color: #FF6B00;
-        transition: width 0.3s ease;
-        border-radius: 10px;
-    }
-
-    .nav-link:hover::after { width: 100%; }
-    .nav-link:hover { color: #FF6B00; }
-
-    /* حالة الصفحة النشطة (التي ستبقي الخط تحت الرئيسية) */
-    .nav-active {
-        color: #FF6B00 !important;
-        font-weight: 900;
-    }
-    .nav-active::after { 
-        width: 100% !important; 
-    }
-
-    /* حركات القائمة الجانبية والسلة */
-    .slide-in-right { 
-        animation: slideInRight 0.3s ease-out forwards; 
-    }
-    @keyframes slideInRight { 
-        from { transform: translateX(100%); } 
-        to { transform: translateX(0); } 
-    }
-
-    /* التنسيقات الإضافية للهيرو والخريطة */
-    .hero-gradient { background: linear-gradient(135deg, #0057FF 0%, #003AAB 100%); }
-    
-    #map { 
-        height: 180px; 
-        width: 100%; 
-        border-radius: 20px; 
-        border: 2px solid #f3f4f6; 
-        margin: 10px 0; 
-        z-index: 10; 
-    }
-    
-    #backToTop {
-        display: none; 
-        position: fixed; 
-        bottom: 30px; 
-        right: 30px; 
-        z-index: 99;
-        background: #0057FF; 
-        color: white; 
-        padding: 15px; 
-        border-radius: 20px;
-        box-shadow: 0 10px 20px rgba(0, 87, 255, 0.3); 
-        transition: 0.3s;
-    }
-    #backToTop:hover { 
-        background: #FF6B00; 
-        transform: translateY(-5px); 
-    }
-</style>
+        .hero-section { background: radial-gradient(circle at top right, #f0f7ff, #ffffff); padding-top: 140px; padding-bottom: 70px; }
+        .box-feature { padding: 25px; border-radius: 25px; transition: 0.3s; border: 1px solid rgba(0,0,0,0.05); background: white; }
+        .box-feature:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.05); }
+        
+        .search-input { width: 100%; padding: 18px 60px 18px 25px; border-radius: 20px; border: 2px solid #f0f0f0; font-weight: 700; outline: none; transition: 0.3s; }
+        .search-input:focus { border-color: #0057FF; background: #fff; }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800 antialiased overflow-x-hidden">
+<body>
 
-    <header class="fixed top-0 left-0 right-0 z-[2000] glass-header">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            
-            <div class="flex-shrink-0">
-                <a href="index.html" class="flex items-center gap-1 group">
-                    <span class="text-barq-blue font-black text-2xl italic transition-transform group-hover:-translate-y-1">البرق</span>
-                    <span class="text-barq-orange font-black text-2xl italic transition-transform group-hover:translate-y-1">للتوصيل</span>
-                </a>
+    <header>
+        <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'">
+            <div class="w-10 h-10 bg-[#0057FF] rounded-xl flex items-center justify-center shadow-lg rotate-3">
+                <i class="fas fa-bolt text-white"></i>
             </div>
-    
-            <nav class="hidden md:flex items-center gap-10 font-bold text-gray-700">
-                <a href="index.html" class="nav-link nav-active">الرئيسية</a>
-                <a href="restaurants.html" class="nav-link">المطاعم</a>
-                <a href="offers.html" class="nav-link">العروض 🔥</a>
-                <a href="about.html" class="nav-link">من نحن</a>
-            </nav>
-    
-            <div class="flex items-center gap-3">
-                <button onclick="openCartDrawer()" class="p-3 bg-white border border-gray-100 rounded-2xl relative hover:shadow-md hover:border-barq-orange transition-all active:scale-90 group">
-                    <span id="cart-count" class="absolute -top-2 -right-2 bg-barq-orange text-white text-[11px] w-6 h-6 flex items-center justify-center rounded-full font-black shadow-lg hidden">0</span>
-                    <span class="text-2xl group-hover:rotate-12 transition-transform inline-block">🛒</span>
-                </button>
-                
-                <button onclick="toggleMobileMenu()" class="md:hidden p-3 bg-gray-50 rounded-2xl text-barq-blue text-2xl hover:bg-gray-100 transition-colors">
-                    ☰
-                </button>
+            <span class="text-xl font-black text-gray-900 tracking-tighter italic">الـبـرق للتوصيل</span>
+        </div>
+        
+        <nav class="nav-links hidden md:flex">
+            <a href="index.html" class="active">الرئيسية</a>
+            <a href="restaurants.html">المطاعم</a>
+            <a href="offers.html">العروض</a>
+            <a href="about.html">عن البرق</a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+            <div class="cart-wrapper icon-btn" onclick="toggleCart(true)">
+                <i class="fas fa-shopping-basket text-lg"></i>
+                <span id="cart-badge" class="cart-count">0</span>
             </div>
+            <a href="admin.html" class="icon-btn"><i class="fas fa-user-shield text-sm"></i></a>
         </div>
     </header>
+
+    <div id="cart-overlay" onclick="toggleCart(false)"></div>
     
-    <div id="mobile-menu" class="fixed inset-0 z-[3000] hidden">
-        <div onclick="toggleMobileMenu()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <aside id="side-cart">
+        <div class="p-6 border-b flex justify-between items-center bg-gray-50">
+            <h2 class="font-black text-gray-800 italic flex items-center gap-2">
+                <i class="fas fa-shopping-bag text-[#0057FF]"></i> سلة طلباتك
+            </h2>
+            <button onclick="toggleCart(false)" class="text-3xl text-gray-400 hover:text-red-500">&times;</button>
+        </div>
         
-        <div class="absolute top-0 right-0 h-full w-[280px] bg-white shadow-2xl flex flex-col p-8 animate-slide-in">
-            <div class="flex justify-between items-center mb-12">
-                <span class="text-barq-blue font-black text-xl italic">القائمة ⚡</span>
-                <button onclick="toggleMobileMenu()" class="text-2xl text-gray-400 hover:text-barq-orange transition-colors">✕</button>
+        <div id="cart-content" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
             </div>
-            
-            <nav class="flex flex-col gap-8 text-lg font-black text-gray-800">
-                <a href="index.html" class="flex items-center gap-3 text-barq-orange">
-                    <span class="text-xl">🏠</span> الرئيسية
-                </a>
-                <a href="restaurants.html" class="flex items-center gap-3 hover:text-barq-orange transition-colors">
-                    <span class="text-xl">🏢</span> المطاعم
-                </a>
-                <a href="offers.html" class="flex items-center gap-3 hover:text-barq-orange transition-colors">
-                    <span class="text-xl">🔥</span> العروض
-                </a>
-                <a href="about.html" class="flex items-center gap-3 hover:text-barq-orange transition-colors">
-                    <span class="text-xl">⚡</span> من نحن
-                </a>
-            </nav>
-    
-            <div class="mt-auto border-t border-gray-100 pt-8">
-                <p class="text-xs font-bold text-gray-400 mb-2 italic text-center">الإدارة العامة:</p>
-                <a href="tel:772111598" class="block text-center text-barq-blue font-black text-lg italic hover:text-barq-orange">772111598</a>
-            </div>
-        </div>
-    </div>
 
-    <div id="mobile-menu" class="fixed inset-0 z-[3000] hidden">
-        <div onclick="toggleMobileMenu()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-        <div class="absolute top-0 right-0 h-full w-[280px] bg-white shadow-2xl flex flex-col p-8 slide-in-right">
-            <div class="flex justify-between items-center mb-10">
-                <span class="text-barq-blue font-black text-xl italic">القائمة ⚡</span>
-                <button onclick="toggleMobileMenu()" class="text-2xl text-gray-400">✕</button>
+        <div class="p-6 bg-white border-t space-y-4">
+            <div class="flex justify-between items-center mb-2">
+                <span class="font-black text-lg text-gray-800">الإجمالي:</span>
+                <span id="final-total" class="text-2xl font-black text-[#0057FF]">0 ر.ي</span>
             </div>
-            <nav class="flex flex-col gap-6 text-lg font-black">
-                <a href="index.html" class="text-barq-orange">🏠 الرئيسية</a>
-                <a href="restaurants.html">🏢 المطاعم</a>
-                <a href="offers.html">🔥 العروض</a>
-                <a href="about.html">⚡ من نحن</a>
-            </nav>
+            <a href="cart.html" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-center block text-lg shadow-lg hover:bg-[#0057FF] transition-all">
+                <i class="fas fa-shopping-cart ml-2"></i> إتمام الطلب والدفع
+            </a>
         </div>
-    </div>
+    </aside>
 
-    <main class="pt-20">
-        <section class="hero-gradient text-white py-16 px-4 text-center">
-            <div class="container mx-auto max-w-4xl">
-                <div class="inline-block bg-white/20 backdrop-blur-md px-4 py-1 rounded-full text-sm font-bold mb-6 italic">⚡ أسرع خدمة في صنعاء</div>
-                <h1 class="text-3xl md:text-5xl font-black mb-6 leading-tight">طعامك المفضل يوصلك بـ <span class="text-barq-orange italic">سرعة البرق</span></h1>
-                <div class="relative max-w-md mx-auto cursor-pointer" onclick="window.location.href='restaurants.html'">
-                    <input type="text" readonly placeholder="ابحث عن مطعم..." class="w-full px-6 py-4 rounded-2xl text-gray-800 font-bold shadow-xl pr-12 cursor-pointer">
-                    <span class="absolute right-4 top-4 opacity-50 text-xl">🔍</span>
+    <main>
+        <section class="hero-section text-center px-4">
+            <div class="animate-fade">
+                <div class="bg-blue-100 text-[#0057FF] px-6 py-2 rounded-full font-black mb-8 inline-block text-sm shadow-sm italic">🚀 الخدمة رقم 1 في سرعة التوصيل بصنعاء</div>
+                <h1 class="text-5xl md:text-7xl font-black text-gray-900 mb-8 leading-tight">وجبتك المفضلة <br> تصلك بـ <span class="text-[#0057FF] italic underline decoration-[#FF6B00]">سرعة البرق</span></h1>
+                <div class="max-w-xl mx-auto relative">
+                    <form action="restaurants.html" method="GET">
+                        <input type="text" name="search" placeholder="ابحث عن مطعم أو وجبة..." class="search-input text-right shadow-lg">
+                        <button type="submit" class="absolute left-3 top-1/2 -translate-y-1/2 bg-[#0057FF] text-white px-6 py-2.5 rounded-2xl font-black">بحث</button>
+                    </form>
                 </div>
             </div>
         </section>
 
-        <section class="py-12 bg-white px-6">
-            <div class="container mx-auto grid md:grid-cols-2 gap-6">
-                <div class="p-8 rounded-[2rem] bg-gray-50 text-center border-t-4 border-barq-orange shadow-sm">
-                    <div class="text-4xl mb-4">🚀</div>
-                    <h3 class="text-xl font-black text-barq-blue italic">سرعة فائقة</h3>
-                    <p class="text-gray-500 font-bold text-sm">توصيل قياسي لجميع مديريات الأمانة.</p>
-                </div>
-                <div class="p-8 rounded-[2rem] bg-gray-50 text-center border-t-4 border-barq-blue shadow-sm">
-                    <div class="text-4xl mb-4">💵</div>
-                    <h3 class="text-xl font-black text-barq-blue italic">أسعار منافسة</h3>
-                    <p class="text-gray-500 font-bold text-sm">أقل تكلفة توصيل تبدأ من 500 ريال.</p>
-                </div>
+        <section class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+            <div class="box-feature flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-[#0057FF] text-3xl mb-4"><i class="fas fa-bolt"></i></div>
+                <h3 class="text-xl font-black mb-2">توصيل برق</h3>
+                <p class="text-gray-500 font-bold text-sm">نصلك خلال 20-30 دقيقة داخل أمانة العاصمة.</p>
+            </div>
+            <div class="box-feature flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center text-[#FF6B00] text-3xl mb-4"><i class="fas fa-wallet"></i></div>
+                <h3 class="text-xl font-black mb-2">دفع إلكتروني</h3>
+                <p class="text-gray-500 font-bold text-sm">ندعم كافة المحافظ البنكية والإلكترونية اليمنية.</p>
+            </div>
+            <div class="box-feature flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-yellow-50 rounded-2xl flex items-center justify-center text-[#EAB308] text-3xl mb-4"><i class="fas fa-star"></i></div>
+                <h3 class="text-xl font-black mb-2">جودة مضمونة</h3>
+                <p class="text-gray-500 font-bold text-sm">أفضل المطاعم المختارة بعناية لضمان الطعم والجودة.</p>
             </div>
         </section>
 
-        <div class="container mx-auto px-4 mt-10">
-            <div class="flex items-center justify-between mb-8">
-                <h2 class="text-2xl font-black text-gray-800 italic flex items-center gap-2">
-                    <span class="bg-barq-blue w-2 h-8 rounded-full"></span> أبرز المطاعم 🏢
-                </h2>
-                <a href="restaurants.html" class="text-barq-orange font-bold text-sm underline">عرض الكل</a>
-            </div>
-            <div id="menu-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 pb-20">
-                </div>
-        </div>
+        <section class="container mx-auto px-6 mb-24 text-right">
+             <h2 class="text-3xl font-black text-gray-800 italic border-r-8 border-[#FF6B00] pr-4 mb-10">المطاعم الأعلى تقييماً</h2>
+             <div id="res-grid-home" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+        </section>
     </main>
 
-    <div id="cart-overlay" onclick="closeCartDrawer()" class="fixed inset-0 bg-black/60 z-[3000] hidden backdrop-blur-sm"></div>
-    <div id="cart-drawer" class="fixed top-0 left-0 h-full w-full max-w-[380px] z-[3001] bg-white transform -translate-x-full flex flex-col shadow-2xl border-r-4 border-barq-orange transition-transform duration-300">
-        
-        <div class="p-4 bg-barq-blue text-white flex justify-between items-center shadow-md">
-            <h2 class="font-black text-lg italic">سلّتك 🛍️</h2>
-            <button onclick="closeCartDrawer()" class="text-2xl font-bold">✕</button>
-        </div>
-    
-        <div class="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
-            <input type="hidden" id="selected-restaurant-name" value="البرق للتوصيل">
-            
-            <div id="cart-items" class="space-y-3 font-bold text-right">
-                </div>
-            
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-                
-                <div>
-                    <h3 class="font-black text-[11px] text-barq-blue mb-2 italic">📞 رقم هاتفك للتواصل</h3>
-                    <input type="tel" id="customer-phone" placeholder="77XXXXXXX" 
-                           class="w-full p-3 rounded-xl border-2 border-gray-100 font-bold text-sm outline-none focus:border-barq-orange transition">
-                </div>
-    
-                <hr class="border-gray-50">
-    
-                <h3 class="font-black text-[11px] text-barq-blue italic">📍 موقع التوصيل</h3>
-                <div id="map"></div>
-                <button onclick="getCurrentLocation()" class="w-full bg-blue-50 text-barq-blue py-3 rounded-xl text-[10px] font-black border border-blue-100 mb-2">تحديد موقعي التلقائي (GPS) 🎯</button>
-                <input type="hidden" id="location-coords">
-                <input type="text" id="manual-address" placeholder="اسم الشارع / معلم بارز" class="w-full p-3 rounded-xl border-2 border-gray-100 font-bold text-sm outline-none focus:border-barq-blue">
-    
-                <hr class="border-gray-50">
-    
-                <h3 class="font-black text-[11px] text-barq-blue italic">💳 طريقة الدفع (كافة المحافظ)</h3>
-                <select id="payment-method" class="w-full p-3 rounded-xl border-2 border-gray-100 font-bold text-xs bg-gray-50 outline-none">
-                    <optgroup label="الدفع النقدي">
-                        <option value="نقد عند الاستلام (كاش)">نقد عند الاستلام (كاش) 💵</option>
-                    </optgroup>
-                    <optgroup label="المحافظ والبنوك الإلكترونية">
-                        <option value="كريمي (ام فلوس)">كريمي (ام فلوس) 🏦</option>
-                        <option value="محفظة جوالي (YKB)">محفظة جوالي (YKB) 📱</option>
-                        <option value="محفظة بيس (Pace)">محفظة بيس (بنك الأمل) 💸</option>
-                        <option value="محفظة جيب (Pocket)">محفظة جيب (بنك التضامن) 💳</option>
-                        <option value="موبايل موني (ككبي)">موبايل موني (ككبي) 📲</option>
-                        <option value="محفظة فلوسك (بنك اليمن والكويت)">محفظة فلوسك 💰</option>
-                        <option value="محفظة ريال موبايل">ريال موبايل 📞</option>
-                    </optgroup>
-                </select>
+    <footer class="bg-gray-900 text-white py-12 px-[6%]">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 text-right">
+            <div>
+                <h3 class="text-2xl font-black text-[#0057FF] mb-4 italic">البرق للتوصيل⚡</h3>
+                <p class="text-gray-400 text-sm font-bold leading-relaxed">نحن هنا لنجعل حياتك أسهل. بلمسة زر واحدة، طلبك يتحرك بسرعة البرق ليصلك ساخناً وطازجاً.</p>
+            </div>
+            <div>
+                <h4 class="font-black mb-4 border-r-4 border-orange-500 pr-3">معلومات التواصل</h4>
+                <p class="text-sm font-bold text-gray-300">خدمة العملاء: 781110052 | 772111598</p>
+            </div>
+            <div>
+                 <h4 class="font-black mb-4 border-r-4 border-blue-500 pr-3">روابط سريعة</h4>
+                 <div class="flex flex-col gap-2">
+                    <a href="restaurants.html" class="text-gray-400 hover:text-white font-bold">تصفح المطاعم</a>
+                    <a href="offers.html" class="text-gray-400 hover:text-white font-bold">آخر العروض</a>
+                    <a href="about.html" class="text-gray-400 hover:text-white font-bold">من نحن</a>
+                 </div>
             </div>
         </div>
-    
-        <div class="p-4 bg-white border-t">
-            <div class="flex justify-between items-center mb-4 font-black italic">
-                <span class="text-gray-500">الإجمالي:</span>
-                <span id="cart-total" class="text-2xl text-barq-blue">0 ريال</span>
-            </div>
-            <button id="whatsapp-checkout" class="w-full bg-[#25D366] text-white py-4 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-transform">إرسال الطلب عبر واتساب ✅</button>
+        <div class="text-center mt-10 pt-10 border-t border-gray-800 text-gray-500 text-xs font-bold">
+            جميع الحقوق محفوظة لشركة البرق للتوصيل © 2026
         </div>
-    </div>
-    <footer class="bg-gray-900 text-white py-12 text-center border-t-4 border-barq-orange">
-        <p class="font-black text-2xl mb-4 italic">البرق <span class="text-barq-orange">للتوصيل</span></p>
-        <p class="text-gray-500 text-xs mb-4 italic">صنعاء - اليمن | 772111598</p>
-        <p class="text-gray-600 text-[10px]">جميع الحقوق محفوظة &copy; 2026</p>
     </footer>
 
-    <button onclick="scrollToTop()" id="backToTop">↑</button>
-
-    <script src="script.js"></script>
     <script>
-        function toggleMobileMenu() {
-            const m = document.getElementById('mobile-menu');
-            m.classList.toggle('hidden');
-            document.body.style.overflow = m.classList.contains('hidden') ? 'auto' : 'hidden';
-        }
-        function openCartDrawer() {
-            document.getElementById('cart-drawer').style.transform = 'translateX(0)';
-            document.getElementById('cart-overlay').classList.remove('hidden');
-        }
-        function closeCartDrawer() {
-            document.getElementById('cart-drawer').style.transform = 'translateX(-100%)';
-            document.getElementById('cart-overlay').classList.add('hidden');
-        }
-        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        
-        window.onscroll = function() {
-            const b = document.getElementById("backToTop");
-            b.style.display = document.documentElement.scrollTop > 300 ? "block" : "none";
-        };
+        // دالة السلة الموحدة (barq_cart) لضمان الربط مع جميع الصفحات
+        function getCart() { return JSON.parse(localStorage.getItem('barq_cart')) || []; }
+        function saveCart(cart) { localStorage.setItem('barq_cart', JSON.stringify(cart)); }
 
-        // تشغيل عرض المطاعم عند البدء
-        window.onload = function() {
-            if(window.displayRestaurantsGrid) displayRestaurantsGrid();
+        function toggleCart(show) {
+            const sideCart = document.getElementById('side-cart');
+            const overlay = document.getElementById('cart-overlay');
+            if(show) {
+                sideCart.classList.add('open');
+                overlay.style.display = 'block';
+                renderCartUI();
+            } else {
+                sideCart.classList.remove('open');
+                overlay.style.display = 'none';
+            }
+        }
+
+        function renderCartUI() {
+            const cart = getCart();
+            const container = document.getElementById('cart-content');
+            let total = 0;
+            
+            if(cart.length === 0) {
+                container.innerHTML = `<div class="text-center mt-10"><i class="fas fa-box-open text-4xl text-gray-200 mb-3 block"></i><p class="text-gray-400 font-bold">السلة فارغة حالياً</p></div>`;
+            } else {
+                container.innerHTML = cart.map((item, index) => {
+                    total += (item.price * item.qty);
+                    return `
+                    <div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm">
+                        <div class="text-right">
+                            <p class="text-sm font-black text-gray-800">${item.name}</p>
+                            <p class="text-xs text-blue-600 font-black">${item.price * item.qty} ر.ي</p>
+                        </div>
+                        <div class="flex items-center gap-3 bg-gray-50 border rounded-xl p-1">
+                            <button onclick="changeQty(${index}, 1)" class="w-6 h-6 flex items-center justify-center text-blue-600 font-black">+</button>
+                            <span class="text-xs font-black">${item.qty}</span>
+                            <button onclick="changeQty(${index}, -1)" class="w-6 h-6 flex items-center justify-center text-red-500 font-black">-</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+            document.getElementById('final-total').innerText = total + ' ر.ي';
+            updateBadge();
+        }
+
+        function changeQty(index, delta) {
+            let cart = getCart();
+            cart[index].qty += delta;
+            if(cart[index].qty <= 0) cart.splice(index, 1);
+            saveCart(cart);
+            renderCartUI();
+        }
+
+        function updateBadge() {
+            const cart = getCart();
+            const count = cart.reduce((s, i) => s + i.qty, 0);
+            document.getElementById('cart-badge').innerText = count;
+        }
+
+        // تحميل المطاعم من الـ LocalStorage (التي يتم إضافتها من لوحة الإدارة)
+        function loadHomeRestaurants() {
+            const grid = document.getElementById('res-grid-home');
+            const data = JSON.parse(localStorage.getItem('barq_restaurants')) || [];
+            
+            if(data.length === 0) {
+                grid.innerHTML = `<p class="text-center col-span-3 text-gray-400 font-bold">جاري تحميل المطاعم...</p>`;
+                return;
+            }
+
+            grid.innerHTML = data.slice(0, 6).map(res => `
+                <div class="bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all cursor-pointer group" onclick="goToMenu('${res.name}')">
+                    <div class="relative overflow-hidden">
+                        <img src="${res.image || 'https://via.placeholder.com/400'}" class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                    <div class="p-5 text-right">
+                        <h3 class="text-lg font-black text-gray-800">${res.name}</h3>
+                        <div class="flex items-center gap-1 text-orange-500 text-xs mt-2">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            <span class="text-gray-400 mr-1">(5.0)</span>
+                        </div>
+                        <p class="text-gray-400 text-xs font-bold mt-2">توصيل سريع داخل صنعاء</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function goToMenu(resName) {
+            // حفظ اسم المطعم المختار لفتحه في صفحة المنيو
+            localStorage.setItem('selectedRestaurant', resName);
+            window.location.href = 'menu.html';
+        }
+
+        window.onload = () => {
+            loadHomeRestaurants();
+            updateBadge();
         };
     </script>
 </body>
