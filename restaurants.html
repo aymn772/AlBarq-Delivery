@@ -28,6 +28,21 @@
             border-radius: 10px;
         }
 
+        /* --- ستايل القائمة الجانبية للهاتف الجديد --- */
+        #mobile-menu {
+            position: fixed; top: 0; right: 0; height: 100%; width: 280px;
+            background: white; z-index: 4000; transform: translateX(110%);
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column;
+        }
+        #mobile-menu.open { transform: translateX(0); }
+        .menu-link-item {
+            display: flex; align-items: center; gap: 15px; padding: 18px 25px;
+            font-weight: 800; color: #374151; border-radius: 15px; transition: 0.3s; margin: 0 10px;
+        }
+        .menu-link-item:hover, .menu-link-item.active { background: #eff6ff; color: var(--main-blue); }
+        /* ----------------------------------------- */
+
         /* كروت المطاعم */
         .res-card {
             background: white; border-radius: 28px; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -69,11 +84,18 @@
 
     <nav class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md z-[1000] py-4 px-[6%] border-b border-gray-100 shadow-sm">
         <div class="max-w-77xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg rotate-3">
-                    <i class="fas fa-bolt text-white"></i>
+            
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMobileMenu(true)" class="md:hidden w-11 h-11 bg-gray-50 rounded-xl flex items-center justify-center text-gray-700">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg rotate-3">
+                        <i class="fas fa-bolt text-white"></i>
+                    </div>
+                    <span class="text-xl font-black text-gray-900 tracking-tighter italic">الـبـرق للتوصيل</span>
                 </div>
-                <span class="text-xl font-black text-gray-900 tracking-tighter italic">الـبـرق للتوصيل</span>
             </div>
 
             <ul class="hidden md:flex items-center gap-8 font-bold text-gray-600">
@@ -92,6 +114,19 @@
             </div>
         </div>
     </nav>
+
+    <aside id="mobile-menu">
+        <div class="p-6 border-b flex justify-between items-center bg-gray-50">
+            <span class="font-black text-lg">القائمة</span>
+            <button onclick="toggleMobileMenu(false)" class="text-3xl text-gray-300">&times;</button>
+        </div>
+        <div class="py-6 flex flex-col gap-1">
+            <a href="index.html" class="menu-link-item"><i class="fas fa-home w-5"></i> الرئيسية</a>
+            <a href="restaurants.html" class="menu-link-item active"><i class="fas fa-utensils w-5"></i> المطاعم</a>
+            <a href="offers.html" class="menu-link-item"><i class="fas fa-percentage w-5"></i> العروض</a>
+            <a href="about.html" class="menu-link-item"><i class="fas fa-info-circle w-5"></i> عن البرق</a>
+        </div>
+    </aside>
     
     <header class="text-center mt-32 mb-12 px-[6%]">
         <h1 class="text-4xl font-black text-gray-900 mb-6 tracking-tight">اكتشف مطاعم <span class="text-blue-600 italic">صنعاء</span></h1>
@@ -130,7 +165,7 @@
         </div>
     </footer>
 
-    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-overlay" id="cartOverlay" onclick="closeAllPanels()"></div>
     <aside id="side-cart">
         <div class="p-6 border-b flex justify-between items-center bg-gray-50">
             <h2 class="text-xl font-black text-gray-900 italic">سلة طلباتك 🧺</h2>
@@ -150,6 +185,27 @@
     <script src="script.js"></script>
 
     <script>
+        /* --- دوال القائمة الجانبية للهاتف (إضافة فقط) --- */
+        function toggleMobileMenu(show) {
+            const menu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('cartOverlay');
+            if(show) {
+                menu.classList.add('open');
+                overlay.classList.add('active');
+            } else {
+                menu.classList.remove('open');
+                overlay.classList.remove('active');
+            }
+        }
+
+        function closeAllPanels() {
+            toggleMobileMenu(false);
+            if(document.getElementById('side-cart').classList.contains('open')) {
+                toggleCart();
+            }
+        }
+        /* ------------------------------------------- */
+
         function loadData() {
             // جلب البيانات اليدوية والآلية
             const base = typeof defaultRestaurants !== 'undefined' ? defaultRestaurants : [];
@@ -224,9 +280,9 @@
                             <p class="text-xs text-blue-600 font-bold">${item.price} ر.ي</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button onclick="changeQty(${idx}, 1)" class="text-blue-600 font-bold">+</button>
+                            <button onclick="changeQty(${idx}, 1); event.stopPropagation();" class="text-blue-600 font-bold">+</button>
                             <span class="font-bold">${item.qty}</span>
-                            <button onclick="changeQty(${idx}, -1)" class="text-red-500 font-bold">-</button>
+                            <button onclick="changeQty(${idx}, -1); event.stopPropagation();" class="text-red-500 font-bold">-</button>
                         </div>
                     </div>`;
                 }).join('');

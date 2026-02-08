@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>قائمة الطعام | البرق ⚡</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -10,228 +10,235 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        :root { --main-blue: #0057FF; --main-orange: #FF6B00; }
-        body { font-family: 'Cairo', sans-serif; background: #fcfdfe; color: #1e293b; overflow-x: hidden; }
-
-        .item-card {
-            transition: all 0.3s ease;
-            border-radius: 24px;
-        }
-        .item-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px -10px rgba(0, 87, 255, 0.1); }
-
+        body { font-family: 'Cairo', sans-serif; background: #f8faff; overflow-x: hidden; }
+        .item-card { transition: all 0.3s ease; border-radius: 24px; border: 1px solid #f1f5f9; }
+        .item-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        
         #side-cart {
-            position: fixed; top: 0; left: 0; bottom: 0; width: 350px; 
-            background: white; z-index: 2000; transform: translateX(-100%);
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 20px 0 50px rgba(0,0,0,0.15);
+            position: fixed; top: 0; right: -100%; bottom: 0; width: 100%; max-width: 350px; 
+            background: white; z-index: 3000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.1);
         }
-        #side-cart.open { transform: translateX(0); }
-        .cart-overlay {
-            position: fixed; inset: 0; background: rgba(0, 5, 20, 0.4); 
-            z-index: 1999; display: none; backdrop-filter: blur(8px);
+        #side-cart.open { right: 0; }
+        
+        .overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+            z-index: 2500; display: none;
         }
-        .cart-overlay.active { display: block; }
-
-        .add-btn {
-            background: var(--main-blue); color: white; width: 40px; height: 40px;
-            border-radius: 14px; transition: 0.3s; display: flex; align-items: center; justify-content: center;
-        }
-        .add-btn:active { transform: scale(0.8); }
-
-        .res-banner-container {
-            height: 250px; border-radius: 0 0 40px 40px; overflow: hidden; position: relative;
+        .res-banner { height: 250px; position: relative; overflow: hidden; }
+        
+        /* فرض مكان زر الصعود لليمين */
+        #backToTop { 
+            right: 24px !important; 
+            left: auto !important; 
+            bottom: 24px !important; 
         }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-10">
 
-    <nav class="fixed top-0 inset-x-0 bg-white/90 backdrop-blur-md z-[1000] py-4 px-6 border-b border-gray-50">
+    <nav class="fixed top-0 inset-x-0 bg-white/80 backdrop-blur-lg z-[2000] py-3 px-5 border-b border-gray-100">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <button onclick="history.back()" class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-700 hover:bg-gray-100 transition">
-                    <i class="fas fa-arrow-right"></i>
+            <div class="flex items-center gap-3">
+                <button onclick="location.href='index.html'" class="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-gray-700">
+                    <i class="fas fa-arrow-right text-sm"></i>
                 </button>
                 <div>
-                    <span id="nav-res-name" class="font-black text-lg block leading-none text-gray-900 italic">المطعم</span>
-                    <span class="text-[10px] text-blue-600 font-bold uppercase tracking-widest">منيو البرق ⚡</span>
+                    <span id="nav-res-name" class="font-black text-sm block leading-none text-gray-900 italic">جاري التحميل...</span>
+                    <span class="text-[9px] text-blue-600 font-bold uppercase tracking-tighter">منيو البرق السريع ⚡</span>
                 </div>
             </div>
             
-            <button onclick="toggleCart()" class="relative w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                <i class="fas fa-shopping-basket text-lg"></i>
-                <span id="cart-badge" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] w-6 h-6 rounded-full flex items-center justify-center border-4 border-white font-black">0</span>
+            <button onclick="toggleCart(true)" class="relative w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-100">
+                <i class="fas fa-shopping-basket text-sm"></i>
+                <span id="cart-badge-menu" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[9px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white font-black">0</span>
             </button>
         </div>
     </nav>
 
-    <header class="mt-[70px]">
-        <div class="res-banner-container mx-auto max-w-6xl md:mt-4 md:rounded-[40px]">
-            <img id="res-banner" src="" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8">
-                <h1 id="res-name-title" class="text-3xl font-black text-white mb-2 italic">...</h1>
-                <p id="res-address" class="text-white/80 text-sm font-bold"><i class="fas fa-map-marker-alt ml-1"></i> ...</p>
+    <header class="mt-[60px]">
+        <div class="res-banner">
+            <img id="res-banner-img" src="" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent flex flex-col justify-end p-6">
+                <h1 id="res-name-title" class="text-2xl font-black text-white italic">...</h1>
+                <p id="res-address" class="text-white/70 text-xs font-bold mt-1"><i class="fas fa-map-marker-alt ml-1"></i> ...</p>
             </div>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-6 mt-12">
-        <div id="menu-sections" class="space-y-12">
+    <main class="max-w-6xl mx-auto px-4 mt-8">
+        <div id="menu-container" class="space-y-10">
             </div>
     </main>
 
-    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div id="common-overlay" class="overlay" onclick="toggleCart(false)"></div>
     <aside id="side-cart" class="flex flex-col">
-        <div class="p-8 border-b flex justify-between items-center">
-            <h2 class="text-2xl font-black text-gray-900 italic">سلتك 🛒</h2>
-            <button onclick="toggleCart()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+        <div class="p-6 border-b flex justify-between items-center bg-gray-50">
+            <h2 class="text-lg font-black italic">سلة طلباتك 🛒</h2>
+            <button onclick="toggleCart(false)" class="text-2xl text-gray-300 hover:text-red-500">&times;</button>
         </div>
-        <div id="cart-items-list" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
-        <div class="p-8 border-t bg-white">
-            <div class="flex justify-between items-center mb-6">
-                <span class="text-gray-400 font-black">الإجمالي</span>
-                <span id="cart-total-price" class="text-2xl font-black text-blue-600">0 ر.ي</span>
+        <div id="cart-items-preview" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+        <div class="p-6 border-t shadow-2xl bg-white">
+            <div class="flex justify-between mb-4">
+                <span class="font-bold text-gray-400">الإجمالي:</span>
+                <span id="cart-total-preview" class="font-black text-xl text-blue-600">0 ر.ي</span>
             </div>
-            <button onclick="location.href='cart.html'" class="w-full bg-[#0057FF] text-white py-5 rounded-[22px] font-black text-lg shadow-xl hover:bg-blue-700 transition-all">
-                مراجعة الطلب والدفع
-            </button>
+            <button onclick="location.href='cart.html'" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all">إتمام الطلب</button>
         </div>
     </aside>
 
-    <script src="script.js"></script>
+    <button id="backToTop" 
+            onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+            class="fixed hidden w-12 h-12 bg-white border border-gray-100 text-blue-600 rounded-2xl shadow-2xl z-[4000] items-center justify-center transition-all hover:bg-orange-500 hover:text-white">
+        <i class="fas fa-chevron-up"></i>
+    </button>
 
-    <script>
-        // --- المنطق المدمج بين القديم والجديد ---
+    <script src="script.js"></script> <script src="cart.js"></script>   <script>
         const selectedResId = localStorage.getItem('selectedRestaurantId');
 
-        function initPage() {
-            // 1. محاولة جلب المطاعم من localStorage (المدخلة من لوحة الإدارة)
-            let adminRestaurants = JSON.parse(localStorage.getItem('barq_restaurants')) || [];
+        function loadMenu() {
+            // جلب البيانات من المصدرين (الإدارة والملف اليدوي)
+            const adminRes = JSON.parse(localStorage.getItem('barq_v4_res')) || [];
+            const manualRes = (typeof defaultRestaurants !== 'undefined') ? defaultRestaurants : [];
+            const allRes = [...adminRes, ...manualRes];
             
-            // 2. محاولة جلب المطاعم من script.js (المدخلة يدوياً سابقاً)
-            // ملاحظة: افترضنا أن المصفوفة في script.js اسمها defaultRestaurants كما في كودك السابق
-            let manualRestaurants = (typeof defaultRestaurants !== 'undefined') ? defaultRestaurants : [];
+            const restaurant = allRes.find(r => r.id == selectedResId);
 
-            // دمج القائمتين للبحث فيهما
-            let allAvailableRestaurants = [...adminRestaurants, ...manualRestaurants];
-
-            // 3. البحث عن المطعم المختار
-            const restaurant = allAvailableRestaurants.find(r => r.id == selectedResId);
-            
-            if (restaurant) {
-                document.getElementById('nav-res-name').innerText = restaurant.name;
-                document.getElementById('res-name-title').innerText = restaurant.name;
-                document.getElementById('res-address').innerHTML = `<i class="fas fa-map-marker-alt ml-1"></i> ${restaurant.address || restaurant.badge || 'صنعاء'}`;
-                document.getElementById('res-banner').src = restaurant.image || restaurant.img;
-
-                renderMenu(restaurant.menu);
-            } else {
-                // إذا لم يجد شيئاً، يعود لصفحة المطاعم
-                console.error("المطعم غير موجود في البيانات");
+            if (!restaurant) {
+                alert("المطعم غير موجود!");
+                location.href = 'index.html';
+                return;
             }
-            updateCartUI();
-        }
 
-        // دالة العرض التي تدعم الأقسام والوجبات العادية
-        function renderMenu(menuData) {
-            const container = document.getElementById('menu-sections');
+            // تحديث واجهة المطعم
+            document.getElementById('nav-res-name').innerText = restaurant.name;
+            document.getElementById('res-name-title').innerText = restaurant.name;
+            document.getElementById('res-banner-img').src = restaurant.img || restaurant.image || 'https://via.placeholder.com/600x400';
+            document.getElementById('res-address').innerHTML = `<i class="fas fa-map-marker-alt ml-1"></i> ${restaurant.address || restaurant.badge || 'صنعاء - اليمن'}`;
+
+            const container = document.getElementById('menu-container');
             container.innerHTML = '';
+            
+            // جلب المنيو بجميع مسمياته الممكنة
+            const menu = restaurant.menu || restaurant.items || {};
 
-            if (Array.isArray(menuData)) {
-                // إذا كان المنيو عبارة عن مصفوفة وجبات مباشرة
-                container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${generateItemsHTML(menuData)}</div>`;
+            if (Object.keys(menu).length === 0) {
+                container.innerHTML = `<p class="text-center py-10 text-gray-400 font-bold">لا توجد وجبات مضافة حالياً</p>`;
+                return;
+            }
+
+            // معالجة عرض المنيو سواء كان مصفوفة أو أقسام
+            if (Array.isArray(menu)) {
+                renderCategory("قائمة الطعام", menu, restaurant.name);
             } else {
-                // إذا كان المنيو مقسماً لأقسام (مثل: مشويات، مقبلات...)
-                for (const category in menuData) {
-                    container.innerHTML += `
-                        <section>
-                            <h3 class="text-xl font-black mb-6 flex items-center gap-2">
-                                <span class="w-2 h-7 bg-orange-500 rounded-full"></span> ${category}
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                ${generateItemsHTML(menuData[category])}
-                            </div>
-                        </section>`;
+                for (const [category, items] of Object.entries(menu)) {
+                    renderCategory(category, items, restaurant.name);
                 }
             }
         }
 
-        function generateItemsHTML(items) {
-            return items.map(item => `
-                <div class="item-card bg-white p-4 rounded-[30px] flex items-center gap-4 border border-gray-50 shadow-sm">
-                    <img src="${item.img || item.image || 'https://via.placeholder.com/150'}" class="w-24 h-24 rounded-2xl object-cover">
-                    <div class="flex-1">
-                        <h4 class="font-black text-gray-900 text-sm mb-1">${item.name}</h4>
-                        <p class="text-blue-600 font-black text-sm">${Number(item.price).toLocaleString()} ر.ي</p>
+        function renderCategory(categoryName, items, resName) {
+            const container = document.getElementById('menu-container');
+            const sectionHTML = `
+                <section>
+                    <h3 class="text-lg font-black mb-4 flex items-center gap-2 text-gray-800">
+                        <span class="w-1.5 h-6 bg-orange-500 rounded-full"></span> ${categoryName}
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        ${items.map(item => `
+                            <div class="item-card bg-white p-3 flex items-center gap-4 border border-gray-50 shadow-sm">
+                                <img src="${item.img || item.image || 'https://via.placeholder.com/150'}" class="w-20 h-20 rounded-2xl object-cover bg-gray-50">
+                                <div class="flex-1">
+                                    <h4 class="font-black text-gray-800 text-sm">${item.name}</h4>
+                                    <p class="text-blue-600 font-black text-xs mt-1">${Number(item.price).toLocaleString()} ر.ي</p>
+                                </div>
+                                <button onclick="addToCartUI(${item.id}, '${item.name}', ${item.price}, '${item.img || item.image}', '${resName}')" 
+                                        class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all active:scale-90">
+                                    <i class="fas fa-plus text-xs"></i>
+                                </button>
+                            </div>
+                        `).join('')}
                     </div>
-                    <button onclick="addToCart(${item.id}, '${item.name}', ${item.price}, '${item.img || item.image}')" class="add-btn shadow-md">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-            `).join('');
+                </section>`;
+            container.innerHTML += sectionHTML;
         }
 
-        // --- نظام السلة ---
-        function addToCart(id, name, price, img) {
+        // دالة الإضافة للسلة (تحديث البيانات وواجهة السلة)
+        function addToCartUI(id, name, price, img, resName) {
             let cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
             const existing = cart.find(i => i.id === id);
-            if(existing) { existing.qty++; } 
-            else { cart.push({ id, name, price, img, qty: 1 }); }
-            localStorage.setItem('barq_cart', JSON.stringify(cart));
-            updateCartUI();
             
-            // تنبيه بسيط
+            if(existing) {
+                existing.quantity++;
+            } else {
+                cart.push({ id, name, price, img, quantity: 1, restaurantName: resName });
+            }
+            
+            localStorage.setItem('barq_cart', JSON.stringify(cart));
+            updateCartPreview();
+            
+            // تأثير بصري عند الإضافة
             const btn = event.currentTarget;
-            btn.innerHTML = '<i class="fas fa-check"></i>';
-            btn.style.backgroundColor = '#10b981';
-            setTimeout(() => { btn.innerHTML = '<i class="fas fa-plus"></i>'; btn.style.backgroundColor = ''; }, 800);
+            btn.classList.add('bg-green-500', 'text-white');
+            btn.innerHTML = '<i class="fas fa-check text-xs"></i>';
+            setTimeout(() => {
+                btn.classList.remove('bg-green-500', 'text-white');
+                btn.innerHTML = '<i class="fas fa-plus text-xs"></i>';
+            }, 800);
         }
 
-        function updateCartUI() {
+        function updateCartPreview() {
             const cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
-            const badge = document.getElementById('cart-badge');
-            const listContainer = document.getElementById('cart-items-list');
-            const totalPriceEl = document.getElementById('cart-total-price');
-            
+            const container = document.getElementById('cart-items-preview');
             let total = 0, count = 0;
-            listContainer.innerHTML = '';
-            
-            cart.forEach(item => {
-                total += (item.price * item.qty);
-                count += item.qty;
-                listContainer.innerHTML += `
-                    <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border">
-                        <div class="flex-1">
+
+            container.innerHTML = cart.map(item => {
+                total += (item.price * item.quantity);
+                count += item.quantity;
+                return `
+                    <div class="flex justify-between items-center bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                        <div class="text-right">
                             <p class="text-xs font-black">${item.name}</p>
-                            <p class="text-[10px] text-blue-600">${item.price} ر.ي</p>
+                            <p class="text-[10px] text-blue-600 font-bold">${item.price} ر.ي</p>
                         </div>
-                        <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border">
-                            <button onclick="changeQty(${item.id}, -1)" class="text-red-500"><i class="fas fa-minus-circle"></i></button>
-                            <span class="text-xs font-black">${item.qty}</span>
-                            <button onclick="changeQty(${item.id}, 1)" class="text-blue-600"><i class="fas fa-plus-circle"></i></button>
+                        <div class="flex items-center gap-2">
+                             <button onclick="changeQtyUI(${item.id}, 1)" class="w-6 h-6 bg-white rounded-lg text-[10px] shadow-sm">+</button>
+                             <span class="text-xs font-black">${item.quantity}</span>
+                             <button onclick="changeQtyUI(${item.id}, -1)" class="w-6 h-6 bg-white rounded-lg text-[10px] shadow-sm">-</button>
                         </div>
                     </div>`;
-            });
+            }).join('');
 
-            badge.innerText = count;
-            totalPriceEl.innerText = total.toLocaleString() + ' ر.ي';
+            document.getElementById('cart-total-preview').innerText = total.toLocaleString() + ' ر.ي';
+            document.getElementById('cart-badge-menu').innerText = count;
         }
 
-        function changeQty(id, delta) {
+        function changeQtyUI(id, delta) {
             let cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
             const idx = cart.findIndex(i => i.id === id);
             if(idx !== -1) {
-                cart[idx].qty += delta;
-                if(cart[idx].qty <= 0) cart.splice(idx, 1);
+                cart[idx].quantity += delta;
+                if(cart[idx].quantity <= 0) cart.splice(idx, 1);
                 localStorage.setItem('barq_cart', JSON.stringify(cart));
-                updateCartUI();
+                updateCartPreview();
             }
         }
 
-        function toggleCart() {
-            document.getElementById('side-cart').classList.toggle('open');
-            document.getElementById('cartOverlay').classList.toggle('active');
+        function toggleCart(show) {
+            document.getElementById('side-cart').classList.toggle('open', show);
+            document.getElementById('common-overlay').style.display = show ? 'block' : 'none';
         }
 
-        window.onload = initPage;
+        window.onscroll = () => {
+            const btn = document.getElementById('backToTop');
+            if (window.scrollY > 400) { btn.style.display = 'flex'; }
+            else { btn.style.display = 'none'; }
+        };
+
+        window.onload = () => {
+            loadMenu();
+            updateCartPreview();
+        };
     </script>
 </body>
 </html>
