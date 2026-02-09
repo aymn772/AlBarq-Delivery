@@ -27,7 +27,6 @@
         }
         .res-banner { height: 250px; position: relative; overflow: hidden; }
         
-        /* فرض مكان زر الصعود لليمين */
         #backToTop { 
             right: 24px !important; 
             left: auto !important; 
@@ -67,11 +66,11 @@
     </header>
 
     <main class="max-w-6xl mx-auto px-4 mt-8">
-        <div id="menu-container" class="space-y-10">
-            </div>
+        <div id="menu-container" class="space-y-10"></div>
     </main>
 
     <div id="common-overlay" class="overlay" onclick="toggleCart(false)"></div>
+    
     <aside id="side-cart" class="flex flex-col">
         <div class="p-6 border-b flex justify-between items-center bg-gray-50">
             <h2 class="text-lg font-black italic">سلة طلباتك 🛒</h2>
@@ -93,11 +92,14 @@
         <i class="fas fa-chevron-up"></i>
     </button>
 
-    <script src="script.js"></script> <script src="cart.js"></script>   <script>
+    <script src="script.js"></script> 
+    <script src="cart.js"></script>   
+    
+    <script>
         const selectedResId = localStorage.getItem('selectedRestaurantId');
+        let currentRestaurantName = ""; // متغير لتخزين اسم المطعم الحالي
 
         function loadMenu() {
-            // جلب البيانات من المصدرين (الإدارة والملف اليدوي)
             const adminRes = JSON.parse(localStorage.getItem('barq_v4_res')) || [];
             const manualRes = (typeof defaultRestaurants !== 'undefined') ? defaultRestaurants : [];
             const allRes = [...adminRes, ...manualRes];
@@ -110,7 +112,9 @@
                 return;
             }
 
-            // تحديث واجهة المطعم
+            // تخزين اسم المطعم في المتغير العام
+            currentRestaurantName = restaurant.name;
+
             document.getElementById('nav-res-name').innerText = restaurant.name;
             document.getElementById('res-name-title').innerText = restaurant.name;
             document.getElementById('res-banner-img').src = restaurant.img || restaurant.image || 'https://via.placeholder.com/600x400';
@@ -119,7 +123,6 @@
             const container = document.getElementById('menu-container');
             container.innerHTML = '';
             
-            // جلب المنيو بجميع مسمياته الممكنة
             const menu = restaurant.menu || restaurant.items || {};
 
             if (Object.keys(menu).length === 0) {
@@ -127,7 +130,6 @@
                 return;
             }
 
-            // معالجة عرض المنيو سواء كان مصفوفة أو أقسام
             if (Array.isArray(menu)) {
                 renderCategory("قائمة الطعام", menu, restaurant.name);
             } else {
@@ -163,21 +165,31 @@
             container.innerHTML += sectionHTML;
         }
 
-        // دالة الإضافة للسلة (تحديث البيانات وواجهة السلة)
+        // التعديل هنا: نضمن تخزين restaurantName بشكل ثابت
         function addToCartUI(id, name, price, img, resName) {
             let cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+            
+            // التأكد من وجود اسم للمطعم حتى لو لم يمرر
+            const finalResName = resName || currentRestaurantName || "مطعم البرق";
+
             const existing = cart.find(i => i.id === id);
             
             if(existing) {
                 existing.quantity++;
             } else {
-                cart.push({ id, name, price, img, quantity: 1, restaurantName: resName });
+                cart.push({ 
+                    id, 
+                    name, 
+                    price, 
+                    img, 
+                    quantity: 1, 
+                    restaurantName: finalResName // تخزين الاسم داخل الكائن
+                });
             }
             
             localStorage.setItem('barq_cart', JSON.stringify(cart));
             updateCartPreview();
             
-            // تأثير بصري عند الإضافة
             const btn = event.currentTarget;
             btn.classList.add('bg-green-500', 'text-white');
             btn.innerHTML = '<i class="fas fa-check text-xs"></i>';
@@ -199,7 +211,7 @@
                     <div class="flex justify-between items-center bg-gray-50 p-3 rounded-2xl border border-gray-100">
                         <div class="text-right">
                             <p class="text-xs font-black">${item.name}</p>
-                            <p class="text-[10px] text-blue-600 font-bold">${item.price} ر.ي</p>
+                            <p class="text-[10px] text-blue-600 font-bold">${Number(item.price).toLocaleString()} ر.ي</p>
                         </div>
                         <div class="flex items-center gap-2">
                              <button onclick="changeQtyUI(${item.id}, 1)" class="w-6 h-6 bg-white rounded-lg text-[10px] shadow-sm">+</button>
