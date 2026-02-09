@@ -3,191 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عن البرق ⚡ | قصة السرعة والاتقان</title>
+    <title>عن البرق ⚡ | قصة السرعة والإتقان</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'barq-blue': '#0057FF',
-                        'barq-orange': '#FF6B00',
-                    }
-                }
-            }
-        }
-    </script>
-
     <style>
-        body { font-family: 'Cairo', sans-serif !important; background-color: #fcfdfe; margin: 0; }
-        
-        /* الهيدر المائل الموحد لشعار أيمن */
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 6%; background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
-            position: fixed; top: 0; left: 0; right: 0; z-index: 2000;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.05); height: 80px;
-        }
-
-        .nav-links a { text-decoration: none; color: #4b5563; font-weight: 800; font-size: 15px; transition: 0.3s; position: relative; }
-        .nav-links a.active { color: #0057FF; }
-        .nav-links a.active::after {
-            content: ''; position: absolute; bottom: -5px; right: 0;
-            width: 100%; height: 3px; background-color: #FF6B00; border-radius: 2px;
-        }
+        :root { --main-blue: #0057FF; --main-orange: #FF6B00; }
+        body { font-family: 'Cairo', sans-serif; background: #fcfdfe; scroll-behavior: smooth; }
 
         .hero-pattern {
             background: linear-gradient(135deg, #0057FF 0%, #003db3 100%);
             position: relative; overflow: hidden;
         }
         .hero-pattern::before {
-            content: '⚡'; position: absolute; font-size: 20rem; opacity: 0.1; right: -50px; bottom: -50px; transform: rotate(-20deg);
+            content: '⚡'; position: absolute; font-size: 25rem; opacity: 0.1; right: -50px; bottom: -50px; transform: rotate(-20deg);
         }
 
-        .btn-bolt { background: #0057FF; color: white; border-radius: 12px; rotate: 3deg; }
+        .glass-card {
+            background: white; border-radius: 3rem; padding: 3rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        }
+        .glass-card:hover { transform: translateY(-15px); box-shadow: 0 25px 50px rgba(0, 87, 255, 0.1); border-color: var(--main-blue); }
 
-        #backToTop {
-            display: none; position: fixed; bottom: 30px; right: 30px; z-index: 99;
-            background: #0057FF; color: white; width: 50px; height: 50px; border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 87, 255, 0.3); align-items: center; justify-content: center;
-            cursor: pointer; border: none; transition: 0.3s;
+        .side-panel {
+            position: fixed; top: 0; height: 100%; width: 320px; 
+            background: white; z-index: 6000; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #mobile-menu { right: -110%; box-shadow: -10px 0 50px rgba(0,0,0,0.1); }
+        #mobile-menu.open { right: 0; }
+        
+        #cart-drawer { left: -110%; display: flex; flex-direction: column; box-shadow: 10px 0 50px rgba(0,0,0,0.1); }
+        #cart-drawer.open { left: 0; }
+
+        .common-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+            z-index: 5500; display: none; opacity: 0; transition: 0.3s;
+        }
+
+        /* تنسيق زر الصعود الموحد */
+        #backToTop.show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: translateY(0) !important;
         }
     </style>
 </head>
 <body class="antialiased text-right">
 
-    <header>
-        <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'">
-            <div class="w-10 h-10 btn-bolt flex items-center justify-center shadow-lg">
-                <i class="fas fa-bolt text-white"></i>
+    <header class="flex justify-between items-center py-4 px-[6%] bg-white/95 backdrop-blur-md fixed top-0 left-0 right-0 z-[5000] border-b border-gray-100 shadow-sm">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleMenu(true)" class="md:hidden w-11 h-11 flex items-center justify-center bg-blue-50 text-blue-600 rounded-2xl border border-gray-100 shadow-sm">
+                <i class="fas fa-bars-staggered text-xl"></i>
+            </button>
+            <div class="flex items-center gap-2 cursor-pointer group" onclick="location.href='index.html'">
+                <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 rotate-3 transition-transform group-hover:rotate-0">
+                    <i class="fas fa-bolt text-white text-lg"></i>
+                </div>
+                <span class="text-2xl font-black text-gray-900 tracking-tighter italic">البرق للتوصيل</span>
             </div>
-            <span class="text-xl md:text-2xl font-black text-gray-900 tracking-tighter italic">الـبـرق للتوصيل</span>
         </div>
-
-        <nav class="nav-links hidden md:flex gap-8">
-            <a href="index.html">الرئيسية</a>
-            <a href="restaurants.html">المطاعم</a>
-            <a href="offers.html">العروض</a>
-            <a href="about.html" class="active">عن البرق</a>
+        
+        <nav class="hidden md:flex gap-8 items-center">
+            <a href="index.html" class="font-bold text-gray-500 hover:text-blue-600 transition text-sm">الرئيسية</a>
+            <a href="restaurants.html" class="font-bold text-gray-500 hover:text-blue-600 transition text-sm">المطاعم</a>
+            <a href="offers.html" class="font-bold text-gray-500 hover:text-blue-600 transition text-sm">العروض</a>
+            <a href="about.html" class="font-black text-blue-600 border-b-2 border-blue-600 pb-1 text-sm">عن البرق</a>
         </nav>
 
         <div class="flex items-center gap-3">
-            <a href="cart.html" class="w-11 h-11 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100"><i class="fas fa-shopping-basket text-gray-700"></i></a>
-            <a href="admin.html" class="w-11 h-11 bg-gray-900 rounded-full flex items-center justify-center text-white"><i class="fas fa-user-shield"></i></a>
+            <div class="relative cursor-pointer w-11 h-11 flex items-center justify-center bg-gray-50 rounded-2xl transition-all hover:bg-blue-50 group border border-gray-100 shadow-sm" onclick="toggleCart(true)">
+                <i class="fas fa-shopping-basket text-gray-700 group-hover:text-blue-600 text-lg"></i>
+                <span id="cart-badge-main" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white font-black shadow-md">0</span>
+            </div>
         </div>
     </header>
+
+    <div id="common-overlay" class="common-overlay" onclick="closePanels()"></div>
+
+    <aside id="mobile-menu" class="side-panel">
+        <div class="p-6 border-b flex justify-between items-center bg-gray-50">
+            <span class="font-black text-xl italic text-blue-600">القائمة الرئيسيـة</span>
+            <button onclick="toggleMenu(false)" class="text-3xl text-gray-400 hover:text-red-500">&times;</button>
+        </div>
+        <div class="p-4 flex flex-col gap-2 font-bold">
+            <a href="index.html" class="p-4 text-gray-600 hover:bg-blue-50 rounded-2xl transition">الرئيسية</a>
+            <a href="restaurants.html" class="p-4 text-gray-600 hover:bg-blue-50 rounded-2xl transition">المطاعم</a>
+            <a href="offers.html" class="p-4 text-gray-600 hover:bg-blue-50 rounded-2xl transition">العروض</a>
+            <a href="about.html" class="p-4 text-blue-600 bg-blue-50 rounded-2xl italic font-black">عن البرق ⚡</a>
+        </div>
+    </aside>
+
+    <aside id="cart-drawer" class="side-panel">
+        <div class="p-6 bg-gray-900 text-white flex justify-between items-center">
+            <h2 class="font-black italic flex items-center gap-2"><i class="fas fa-bolt text-blue-500"></i> سلة طلباتك</h2>
+            <button onclick="toggleCart(false)" class="text-3xl hover:text-blue-500 transition">&times;</button>
+        </div>
+        <div id="cart-items" class="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50"></div>
+        <div class="p-6 border-t bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+            <div class="flex justify-between items-center mb-6 font-black">
+                <span class="text-gray-400 italic">إجمالي الحساب:</span>
+                <span id="cart-total" class="text-2xl text-blue-600 tracking-tighter">0 ر.ي</span>
+            </div>
+            <button onclick="location.href='cart.html'" class="w-full bg-blue-600 text-white py-5 rounded-3xl font-black text-lg shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all">إتمام الطلب الآن</button>
+        </div>
+    </aside>
 
     <main class="pt-20">
         <section class="hero-pattern text-white py-32 px-6 text-center">
             <div class="container mx-auto max-w-4xl relative z-10">
-                <span class="bg-orange-500 text-white px-4 py-1 rounded-full text-xs font-black mb-6 inline-block animate-bounce">مرحباً بكم في عالم السرعة</span>
-                <h1 class="text-5xl md:text-7xl font-black mb-6 italic tracking-tighter leading-tight">البرق ليس مجرد اسم..<br><span class="text-orange-400">بل هو عهدنا لك.</span></h1>
-                <p class="text-xl font-bold opacity-90 leading-relaxed max-w-2xl mx-auto italic">
+                <span class="bg-orange-500 text-white px-5 py-1.5 rounded-full text-[10px] font-black mb-8 inline-block animate-bounce shadow-xl uppercase tracking-widest">مرحباً بكم في عالم السرعة الفائقة</span>
+                <h1 class="text-5xl md:text-8xl font-black mb-8 italic tracking-tighter leading-[1.1]">البرق ليس مجرد اسم..<br><span class="text-orange-400 underline decoration-wavy decoration-orange-400/30">بل هو عهدنا لك.</span></h1>
+                <p class="text-xl md:text-2xl font-bold opacity-90 leading-relaxed max-w-3xl mx-auto italic">
                     من قلب صنعاء، انطلقنا لنغير مفهوم التوصيل. نحن في "البرق" نؤمن أن وقتك هو أغلى ما تملك، لذلك نسابق الزمن لنصل إليك قبل أن تنتظر.
                 </p>
             </div>
         </section>
 
-        <section class="py-24 px-6 container mx-auto">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl font-black text-gray-900 italic mb-2">لماذا يختار الجميع البرق؟ ⚡</h2>
-                <div class="w-20 h-1.5 bg-barq-orange mx-auto rounded-full"></div>
-            </div>
-
-            <div class="grid md:grid-cols-3 gap-10">
-                <div class="bg-white p-12 rounded-[3rem] shadow-xl shadow-gray-100/50 border border-gray-50 text-center hover:scale-105 transition-all">
-                    <div class="w-20 h-20 bg-blue-50 text-barq-blue rounded-3xl flex items-center justify-center text-4xl mx-auto mb-8 rotate-3">
+        <section class="py-24 px-[6%] container mx-auto text-center">
+            <h2 class="text-4xl md:text-5xl font-black text-gray-900 italic mb-16">لماذا يختار الجميع البرق؟ ⚡</h2>
+            <div class="grid md:grid-cols-3 gap-12 text-right">
+                <div class="glass-card group">
+                    <div class="w-24 h-24 bg-blue-50 text-blue-600 rounded-[2rem] flex items-center justify-center text-5xl mx-auto mb-8 rotate-3 transition-transform group-hover:rotate-0 shadow-sm">
                         <i class="fas fa-rocket"></i>
                     </div>
-                    <h3 class="text-2xl font-black mb-4 italic text-gray-800">سرعة جنونية</h3>
-                    <p class="text-gray-500 font-bold leading-relaxed">نظام توزيع ذكي يضمن وصول مندوبنا إلى المطعم وإليك في وقت قياسي.</p>
+                    <h3 class="text-2xl font-black mb-4 italic text-center text-gray-800">سرعة جنونية</h3>
+                    <p class="text-gray-500 font-bold leading-relaxed text-lg text-center">نظام توزيع ذكي يضمن وصول مندوبنا إلى المطعم وإليك في وقت قياسي.</p>
                 </div>
-
-                <div class="bg-white p-12 rounded-[3rem] shadow-xl shadow-gray-100/50 border border-gray-50 text-center hover:scale-105 transition-all">
-                    <div class="w-20 h-20 bg-orange-50 text-barq-orange rounded-3xl flex items-center justify-center text-4xl mx-auto mb-8 -rotate-3">
+                <div class="glass-card group">
+                    <div class="w-24 h-24 bg-orange-50 text-orange-500 rounded-[2rem] flex items-center justify-center text-5xl mx-auto mb-8 -rotate-3 transition-transform group-hover:rotate-0 shadow-sm">
                         <i class="fas fa-shield-alt"></i>
                     </div>
-                    <h3 class="text-2xl font-black mb-4 italic text-gray-800">أمان وجودة</h3>
-                    <p class="text-gray-500 font-bold leading-relaxed">حقائب حرارية متطورة تحافظ على حرارة وجبتك وكأنها خرجت الآن من المطبخ.</p>
+                    <h3 class="text-2xl font-black mb-4 italic text-center text-gray-800">أمان وجودة</h3>
+                    <p class="text-gray-500 font-bold leading-relaxed text-lg text-center">حقائب حرارية متطورة تحافظ على حرارة وجبتك وكأنها خرجت الآن من المطبخ.</p>
                 </div>
-
-                <div class="bg-white p-12 rounded-[3rem] shadow-xl shadow-gray-100/50 border border-gray-50 text-center hover:scale-105 transition-all">
-                    <div class="w-20 h-20 bg-gray-900 text-white rounded-3xl flex items-center justify-center text-4xl mx-auto mb-8 rotate-3">
+                <div class="glass-card group">
+                    <div class="w-24 h-24 bg-gray-900 text-white rounded-[2rem] flex items-center justify-center text-5xl mx-auto mb-8 rotate-3 transition-transform group-hover:rotate-0 shadow-2xl">
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
-                    <h3 class="text-2xl font-black mb-4 italic text-gray-800">تغطية شاملة</h3>
-                    <p class="text-gray-500 font-bold leading-relaxed">أينما كنت في صنعاء، "البرق" سيجد طريقاً إليك بكل سهولة ويسر.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="bg-gray-900 py-24 text-white">
-            <div class="container mx-auto px-6">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
-                    <div>
-                        <p class="text-5xl font-black text-barq-blue mb-2 italic">100%</p>
-                        <p class="text-sm font-bold opacity-50 uppercase tracking-widest">ثقة العملاء</p>
-                    </div>
-                    <div>
-                        <p class="text-5xl font-black text-barq-orange mb-2 italic">+50</p>
-                        <p class="text-sm font-bold opacity-50 uppercase tracking-widest">شريك نجاح</p>
-                    </div>
-                    <div>
-                        <p class="text-5xl font-black text-barq-blue mb-2 italic">+1000</p>
-                        <p class="text-sm font-bold opacity-50 uppercase tracking-widest">طلب يومي</p>
-                    </div>
-                    <div>
-                        <p class="text-5xl font-black text-barq-orange mb-2 italic">20min</p>
-                        <p class="text-sm font-bold opacity-50 uppercase tracking-widest">متوسط الوقت</p>
-                    </div>
+                    <h3 class="text-2xl font-black mb-4 italic text-center text-gray-800">تغطية شاملة</h3>
+                    <p class="text-gray-500 font-bold leading-relaxed text-lg text-center">أينما كنت في أرجاء صنعاء، أزقتها وشوارعها، البرق سيجد طريقه إليك.</p>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="bg-gray-900 text-white py-16 px-[6%] border-t border-gray-800">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-right">
+    <footer class="bg-gray-900 text-white pt-24 pb-10 px-6">
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-gray-800 pb-20">
             <div>
-                <h3 class="text-2xl font-black text-white mb-6 italic">البرق للتوصيل ⚡</h3>
-                <p class="text-gray-400 font-bold leading-relaxed">أول منصة توصيل ذكية في صنعاء تعتمد على السرعة الفائقة وتجربة المستخدم السلسة. نحن هنا لنخدمك.</p>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i class="fas fa-bolt text-white"></i></div>
+                    <span class="text-2xl font-black italic">البرق للتوصيل</span>
+                </div>
+                <p class="text-gray-400 font-bold leading-relaxed">المنصة الأولى والوحيدة في صنعاء التي تدمج بين السرعة الفائقة وسهولة الطلب عبر الواتساب.</p>
             </div>
             <div>
-                <h4 class="text-lg font-black mb-6 text-barq-blue border-r-4 border-barq-blue pr-4">روابط سريعة</h4>
-                <ul class="space-y-4 font-bold text-gray-400">
-                    <li><a href="restaurants.html" class="hover:text-white transition">تصفح المطاعم</a></li>
-                    <li><a href="offers.html" class="hover:text-white transition">عروض اليوم</a></li>
-                    <li><a href="index.html" class="hover:text-white transition">الرئيسية</a></li>
+                <h4 class="font-black text-lg mb-8 border-r-4 border-blue-600 pr-3">روابط سريعة</h4>
+                <ul class="space-y-4 text-gray-500 font-bold">
+                    <li><a href="index.html" class="hover:text-blue-500 transition">الرئيسية</a></li>
+                    <li><a href="restaurants.html" class="hover:text-blue-500 transition">كل المطاعم</a></li>
+                    <li><a href="offers.html" class="hover:text-blue-500 transition">العروض الخاصة</a></li>
                 </ul>
             </div>
             <div>
-                <h4 class="text-lg font-black mb-6 text-barq-orange border-r-4 border-barq-orange pr-4">تواصل مباشر</h4>
-                <a href="https://wa.me/967781110052" class="flex items-center gap-3 text-2xl font-black hover:text-green-500 transition">
-                    <i class="fab fa-whatsapp"></i> 781110052
-                </a>
-                <p class="text-gray-500 mt-4 font-bold">الإدارة العامة - صنعاء</p>
+                <h4 class="font-black text-lg mb-8 border-r-4 border-blue-600 pr-3">تواصل معنا</h4>
+                <ul class="space-y-4 text-gray-500 font-bold">
+                    <li class="flex items-center gap-3"><i class="fas fa-phone text-blue-600"></i> 772111598</li>
+                    <li class="flex items-center gap-3"><i class="fas fa-map-marker-alt text-blue-600"></i> امانة العاصمة - صنعاء</li>
+                    <li class="flex items-center gap-3"><i class="fab fa-whatsapp text-green-500"></i> اطلب عبر الواتساب</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-black text-lg mb-8 border-r-4 border-blue-600 pr-3">قريباً.. 📱</h4>
+                <p class="text-xs text-gray-500 mb-6 font-bold uppercase tracking-widest">تطبيقات الهواتف الذكية</p>
+                <div class="flex flex-col gap-3">
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5 opacity-50 flex items-center gap-3 transition hover:bg-white/10">
+                        <i class="fab fa-apple text-2xl"></i> <span class="text-xs font-black">App Store</span>
+                    </div>
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5 opacity-50 flex items-center gap-3 transition hover:bg-white/10">
+                        <i class="fab fa-google-play text-xl"></i> <span class="text-xs font-black">Google Play</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="mt-16 pt-8 border-t border-gray-800 text-center">
-            <p class="text-gray-500 font-bold text-xs">جميع الحقوق محفوظة لـ أيمن - البرق للتوصيل © 2026</p>
+        <div class="text-center mt-12 text-gray-600 text-xs font-bold">
+            جميع الحقوق محفوظة لشركة البرق للتوصيل © 2026 | صنعاء، اليمن
         </div>
     </footer>
 
-    <button onclick="scrollToTop()" id="backToTop" class="flex"><i class="fas fa-chevron-up"></i></button>
+    <div id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" 
+        class="fixed bottom-8 right-8 w-14 h-14 bg-[#0057FF] text-white rounded-2xl shadow-2xl flex items-center justify-center cursor-pointer opacity-0 invisible translate-y-10 transition-all duration-500 z-[9999] hover:bg-[#FF6B00] hover:-translate-y-2 group">
+        <i class="fas fa-chevron-up text-xl transition-transform group-hover:scale-125"></i>
+    </div>
 
     <script>
+        // دالة التحكم في القائمة الجانبية
+        function toggleMenu(s) {
+            const m = document.getElementById('mobile-menu');
+            const o = document.getElementById('common-overlay');
+            if(s) { 
+                m.classList.add('open'); 
+                o.style.display = 'block'; 
+                setTimeout(()=>o.style.opacity='1',10); 
+            } else { 
+                m.classList.remove('open'); 
+                o.style.opacity='0'; 
+                setTimeout(()=>o.style.display='none',300); 
+            }
+        }
+
+        // دالة التحكم في السلة
+        function toggleCart(s) {
+            const c = document.getElementById('cart-drawer');
+            const o = document.getElementById('common-overlay');
+            if(s) { 
+                c.classList.add('open'); 
+                o.style.display = 'block'; 
+                setTimeout(()=>o.style.opacity='1',10); 
+                renderCartUI(); 
+            } else { 
+                c.classList.remove('open'); 
+                o.style.opacity='0'; 
+                setTimeout(()=>o.style.display='none',300); 
+            }
+        }
+
+        function closePanels() { toggleMenu(false); toggleCart(false); }
+
+        // تحديث شارة السلة
+        function updateBadge() {
+            const cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+            const count = cart.reduce((s, i) => s + (i.qty || i.quantity || 0), 0);
+            const badge = document.getElementById('cart-badge-main');
+            if(badge) {
+                badge.innerText = count;
+                badge.style.display = count > 0 ? 'flex' : 'none';
+            }
+        }
+
+        // عرض محتويات السلة
+        function renderCartUI() {
+            const cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+            const list = document.getElementById('cart-items');
+            let total = 0;
+            if(cart.length === 0) {
+                list.innerHTML = `<div class="text-center py-20 font-black text-gray-400 italic">سلتك فارغة</div>`;
+                document.getElementById('cart-total').innerText = "0 ر.ي";
+                return;
+            }
+            list.innerHTML = cart.map((item) => {
+                const q = item.qty || item.quantity || 0;
+                total += (item.price * q);
+                return `
+                <div class="bg-white p-5 rounded-[1.5rem] flex justify-between items-center border border-gray-100 shadow-sm">
+                    <div class="text-right">
+                        <h4 class="font-black text-gray-800 text-sm italic">${item.name}</h4>
+                        <p class="text-blue-600 font-black text-xs mt-1">${item.price} ر.ي</p>
+                    </div>
+                    <div class="bg-blue-50 text-blue-600 w-10 h-10 flex items-center justify-center rounded-xl font-black">x${q}</div>
+                </div>`;
+            }).join('');
+            document.getElementById('cart-total').innerText = total + " ر.ي";
+        }
+
+        // منطق التمرير والظهور لزر الصعود (الموحد)
         window.onscroll = function() {
-            const btn = document.getElementById("backToTop");
-            if (document.documentElement.scrollTop > 300) {
-                btn.style.display = "flex";
+            const btn = document.getElementById('backToTop');
+            if (window.scrollY > 300) {
+                btn.classList.add('show');
             } else {
-                btn.style.display = "none";
+                btn.classList.remove('show');
             }
         };
-        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+        // التشغيل عند تحميل الصفحة
+        window.onload = updateBadge;
     </script>
 </body>
 </html>

@@ -13,35 +13,22 @@
         :root { --main-blue: #0057FF; --main-orange: #FF6B00; }
         body { font-family: 'Cairo', sans-serif; background: #fcfdfe; scroll-behavior: smooth; overflow-x: hidden; }
 
-        /* ستايل الروابط والخط البرتقالي النشط */
-        .nav-link { position: relative; transition: 0.3s; }
-        .nav-link.active { color: var(--main-blue); }
-        .nav-link.active::after {
-            content: "";
-            position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20px;
-            height: 3px;
-            background: var(--main-orange);
-            border-radius: 10px;
+        /* اللوحات الجانبية */
+        .side-panel {
+            position: fixed; top: 0; height: 100%; width: 85%; max-width: 350px; 
+            background: white; z-index: 4000; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 50px rgba(0,0,0,0.1);
         }
+        #mobile-menu { right: -110%; border-radius: 40px 0 0 40px; }
+        #mobile-menu.open { right: 0; }
+        
+        #side-cart { left: -110%; border-radius: 0 40px 40px 0; display: flex; flex-direction: column; }
+        #side-cart.open { left: 0; }
 
-        /* --- ستايل القائمة الجانبية للهاتف الجديد --- */
-        #mobile-menu {
-            position: fixed; top: 0; right: 0; height: 100%; width: 280px;
-            background: white; z-index: 4000; transform: translateX(110%);
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: -10px 0 30px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column;
+        .common-overlay {
+            position: fixed; inset: 0; background: rgba(0,87,255,0.1); backdrop-filter: blur(4px);
+            z-index: 3000; display: none; opacity: 0; transition: 0.3s;
         }
-        #mobile-menu.open { transform: translateX(0); }
-        .menu-link-item {
-            display: flex; align-items: center; gap: 15px; padding: 18px 25px;
-            font-weight: 800; color: #374151; border-radius: 15px; transition: 0.3s; margin: 0 10px;
-        }
-        .menu-link-item:hover, .menu-link-item.active { background: #eff6ff; color: var(--main-blue); }
-        /* ----------------------------------------- */
 
         /* كروت المطاعم */
         .res-card {
@@ -60,20 +47,6 @@
             font-size: 11px; font-weight: 800; color: var(--main-blue); z-index: 10;
         }
 
-        /* السلة الجانبية */
-        #side-cart {
-            position: fixed; top: 0; left: 0; bottom: 0; width: 360px; 
-            background: white; z-index: 2000; transform: translateX(-100%);
-            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 15px 0 40px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column;
-        }
-        #side-cart.open { transform: translateX(0); }
-        .cart-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.4); 
-            z-index: 1999; display: none; backdrop-filter: blur(4px);
-        }
-        .cart-overlay.active { display: block; }
-
         .order-btn {
             background: linear-gradient(135deg, var(--main-blue), #003db3);
             color: white; padding: 10px 20px; border-radius: 14px; font-weight: 700;
@@ -82,135 +55,179 @@
 </head>
 <body>
 
-    <nav class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md z-[1000] py-4 px-[6%] border-b border-gray-100 shadow-sm">
-        <div class="max-w-77xl mx-auto flex justify-between items-center">
-            
-            <div class="flex items-center gap-3">
-                <button onclick="toggleMobileMenu(true)" class="md:hidden w-11 h-11 bg-gray-50 rounded-xl flex items-center justify-center text-gray-700">
-                    <i class="fas fa-bars"></i>
-                </button>
-
-                <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'">
-                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg rotate-3">
-                        <i class="fas fa-bolt text-white"></i>
-                    </div>
-                    <span class="text-xl font-black text-gray-900 tracking-tighter italic">الـبـرق للتوصيل</span>
-                </div>
-            </div>
-
-            <ul class="hidden md:flex items-center gap-8 font-bold text-gray-600">
-                <li><a href="index.html" class="nav-link hover:text-blue-600 transition-colors">الرئيسية</a></li>
-                <li><a href="restaurants.html" class="nav-link active text-blue-600">المطاعم</a></li>
-                <li><a href="offers.html" class="nav-link hover:text-blue-600 transition-colors">العروض</a></li>
-                <li><a href="about.html" class="nav-link hover:text-blue-600 transition-colors">عن البرق</a></li>
-            </ul>
-
-            <div class="flex items-center gap-3">
-                <button onclick="toggleCart()" class="relative w-11 h-11 bg-gray-50 rounded-full flex items-center justify-center text-gray-700 border border-gray-100">
-                    <i class="fas fa-shopping-basket text-lg"></i>
-                    <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white font-bold">0</span>
-                </button>
-                <a href="admin.html" class="w-11 h-11 bg-gray-900 rounded-full flex items-center justify-center text-white shadow-md"><i class="fas fa-user-shield text-sm"></i></a>
-            </div>
-        </div>
-    </nav>
-
-    <aside id="mobile-menu">
-        <div class="p-6 border-b flex justify-between items-center bg-gray-50">
-            <span class="font-black text-lg">القائمة</span>
-            <button onclick="toggleMobileMenu(false)" class="text-3xl text-gray-300">&times;</button>
-        </div>
-        <div class="py-6 flex flex-col gap-1">
-            <a href="index.html" class="menu-link-item"><i class="fas fa-home w-5"></i> الرئيسية</a>
-            <a href="restaurants.html" class="menu-link-item active"><i class="fas fa-utensils w-5"></i> المطاعم</a>
-            <a href="offers.html" class="menu-link-item"><i class="fas fa-percentage w-5"></i> العروض</a>
-            <a href="about.html" class="menu-link-item"><i class="fas fa-info-circle w-5"></i> عن البرق</a>
-        </div>
-    </aside>
+    <header class="flex justify-between items-center py-4 px-[6%] bg-white/95 backdrop-blur-md fixed top-0 left-0 right-0 z-[5000] border-b border-gray-100 shadow-sm">
     
-    <header class="text-center mt-32 mb-12 px-[6%]">
-        <h1 class="text-4xl font-black text-gray-900 mb-6 tracking-tight">اكتشف مطاعم <span class="text-blue-600 italic">صنعاء</span></h1>
-        <div class="bg-white border border-gray-100 shadow-xl p-2 flex items-center max-w-xl mx-auto rounded-2xl transition-all focus-within:ring-2 focus-within:ring-blue-500/20">
-            <i class="fas fa-search text-gray-400 mx-4"></i>
-            <input type="text" id="searchInput" onkeyup="searchFun()" placeholder="ابحث عن مطعم أو وجبة..." class="w-full bg-transparent outline-none font-bold text-gray-700 py-2">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleMenu(true)" class="md:hidden w-11 h-11 flex items-center justify-center bg-gray-50 text-blue-600 rounded-2xl border border-gray-100 transition-all active:scale-90">
+                <i class="fas fa-bars-staggered text-xl"></i>
+            </button>
+            
+            <div class="flex items-center gap-2 cursor-pointer group" onclick="location.href='index.html'">
+                <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 rotate-3 transition-transform group-hover:rotate-0">
+                    <i class="fas fa-bolt text-white text-lg"></i>
+                </div>
+                <span class="text-2xl font-black text-gray-900 tracking-tighter italic transition-all group-hover:text-blue-600">
+                    البرق للتوصيل
+                </span>
+            </div>
+        </div>
+        
+        <nav class="hidden md:flex gap-8 items-center">
+            <a href="index.html" class="text-sm font-black text-gray-500 hover:text-blue-600 transition-colors">الرئيسية</a>
+            <a href="restaurants.html" class="text-sm font-black text-blue-600 border-b-2 border-blue-600 pb-1">المطاعم</a>
+            <a href="offers.html" class="text-sm font-black text-gray-500 hover:text-blue-600 transition-colors">العروض</a>
+            <a href="about.html" class="text-sm font-black text-gray-500 hover:text-blue-600 transition-colors">عن البرق</a>
+        </nav>
+    
+        <div class="flex items-center gap-3">
+            <div class="relative cursor-pointer w-11 h-11 flex items-center justify-center bg-gray-50 rounded-2xl transition-all hover:bg-blue-50 group border border-gray-100 shadow-sm" onclick="toggleCart(true)">
+                <i class="fas fa-shopping-basket text-gray-700 text-lg group-hover:text-blue-600"></i>
+                <span id="cart-badge-main" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white font-black shadow-md">0</span>
+            </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-[6%] mb-20">
-        <div id="restaurants-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            </div>
-    </main>
+    <div id="common-overlay" class="common-overlay" onclick="closePanels()"></div>
 
-    <footer class="bg-gray-900 text-white py-12 px-[6%] mt-20 text-right">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div>
-                <div class="flex items-center gap-2 mb-4">
-                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center rotate-3"><i class="fas fa-bolt text-white text-sm"></i></div>
-                    <span class="text-xl font-black tracking-tighter italic text-blue-500">الـبـرق للتوصيل</span>
-                </div>
-                <p class="text-gray-400 text-sm font-bold leading-relaxed">أسرع خدمة توصيل وجبات في صنعاء. نضمن لك الجودة والسرعة في كل طلب.</p>
-            </div>
-            <div>
-                <h4 class="font-black mb-4 text-blue-500 border-b border-gray-800 pb-2">تواصل معنا</h4>
-                <p class="text-gray-400 text-sm font-bold mb-2"><i class="fas fa-headset ml-2"></i> خدمة العملاء: 781110052</p>
-                <p class="text-gray-400 text-sm font-bold"><i class="fas fa-user-tie ml-2 text-blue-500"></i> إدارة البرق: 772111598</p>
-            </div>
-            <div>
-                <h4 class="font-black mb-4 text-blue-500 border-b border-gray-800 pb-2">روابط هامة</h4>
-                <ul class="text-gray-400 text-sm space-y-2 font-bold">
-                    <li><a href="index.html" class="hover:text-blue-500">الرئيسية</a></li>
-                    <li><a href="admin.html" class="hover:text-blue-500">لوحة التحكم</a></li>
-                </ul>
-            </div>
+    <aside id="mobile-menu" class="side-panel">
+        <div class="p-8 border-b flex justify-between items-center bg-blue-600 text-white">
+            <h2 class="font-black text-xl italic">القائمة ⚡</h2>
+            <button onclick="toggleMenu(false)" class="text-3xl">&times;</button>
         </div>
-    </footer>
+        <div class="p-6 space-y-4">
+            <a href="index.html" class="flex items-center gap-4 p-4 text-gray-600 rounded-2xl font-bold"><i class="fas fa-home w-6"></i> الرئيسية</a>
+            <a href="restaurants.html" class="flex items-center gap-4 p-4 bg-blue-50 text-blue-600 rounded-2xl font-black"><i class="fas fa-utensils w-6"></i> المطاعم</a>
+            <a href="offers.html" class="flex items-center gap-4 p-4 text-gray-600 rounded-2xl font-bold"><i class="fas fa-percent w-6"></i> العروض</a>
+            <a href="about.html" class="flex items-center gap-4 p-4 text-gray-600 rounded-2xl font-bold"><i class="fas fa-info-circle w-6"></i> من نحن</a>
+        </div>
+    </aside>
 
-    <div class="cart-overlay" id="cartOverlay" onclick="closeAllPanels()"></div>
-    <aside id="side-cart">
+    <aside id="side-cart" class="side-panel">
         <div class="p-6 border-b flex justify-between items-center bg-gray-50">
-            <h2 class="text-xl font-black text-gray-900 italic">سلة طلباتك 🧺</h2>
-            <button onclick="toggleCart()" class="text-gray-400 text-3xl">&times;</button>
+            <span class="font-black text-lg italic text-blue-600">سلة طلباتك 🧺</span>
+            <button onclick="toggleCart(false)" class="text-2xl text-gray-400">&times;</button>
         </div>
         <div id="cart-content" class="flex-1 overflow-y-auto p-5"></div>
         <div class="p-6 border-t bg-white">
-            <div class="flex justify-between text-xl font-black text-blue-600 mb-6">
-                <span>الإجمالي:</span> <span id="final-total">0 ر.ي</span>
+            <div class="flex justify-between text-xl font-black text-gray-900 mb-6">
+                <span>الإجمالي:</span> <span id="final-total" class="text-blue-600">0 ر.ي</span>
             </div>
-            <a href="cart.html" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-blue-600 transition-all shadow-lg">
-                <i class="fas fa-shopping-cart"></i> إتمام الطلب والدفع
+            <a href="cart.html" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-all">
+                <i class="fas fa-shopping-cart"></i> إتمام الطلب
             </a>
         </div>
     </aside>
+    
+    <section class="text-center mt-32 mb-12 px-[6%]">
+        <h1 class="text-4xl font-black text-gray-900 mb-6 tracking-tight">
+            اكتشف مطاعم <span class="text-blue-600 italic">صنعاء</span>
+        </h1>
+        
+        <div class="bg-white border border-gray-100 shadow-xl p-2 flex items-center max-w-xl mx-auto rounded-2xl transition-all focus-within:ring-2 focus-within:ring-blue-500/20 group">
+            <i class="fas fa-search text-gray-400 mx-4 group-focus-within:text-blue-600"></i>
+            <input type="text" id="searchInput" onkeyup="searchFun()" placeholder="ابحث عن مطعم أو وجبة..." 
+                   class="w-full bg-transparent outline-none font-bold text-gray-700 py-2">
+            <button onclick="searchFun()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-blue-700 transition-all mr-2 shadow-md">
+                بحث
+            </button>
+        </div>
+    </section>
+    
+    <main class="max-w-7xl mx-auto px-[6%] mb-20">
+        <div id="restaurants-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </main>
+
+    <footer class="bg-gray-900 text-white pt-24 pb-10 px-6">
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-gray-800 pb-20">
+            <div>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i class="fas fa-bolt text-white"></i></div>
+                    <span class="text-2xl font-black italic">البرق للتوصيل</span>
+                </div>
+                <p class="text-gray-400 font-bold leading-relaxed">المنصة الأولى والوحيدة في صنعاء التي تدمج بين السرعة الفائقة وسهولة الطلب عبر الواتساب.</p>
+            </div>
+            <div>
+                <h4 class="font-black text-lg mb-8 border-r-4 border-blue-600 pr-3">روابط سريعة</h4>
+                <ul class="space-y-4 text-gray-500 font-bold">
+                    <li><a href="index.html" class="hover:text-blue-500 transition">الرئيسية</a></li>
+                    <li><a href="restaurants.html" class="hover:text-blue-500 transition">كل المطاعم</a></li>
+                    <li><a href="offers.html" class="hover:text-blue-500 transition">العروض الخاصة</a></li>
+                    
+                    </ul>
+            </div>
+            <div>
+                <h4 class="font-black text-lg mb-8 border-r-4 border-blue-600 pr-3">تواصل معنا</h4>
+                <ul class="space-y-4 text-gray-500 font-bold">
+                    <li class="flex items-center gap-3"><i class="fas fa-phone text-blue-600"></i> 772111598</li>
+                    <li class="flex items-center gap-3"><i class="fas fa-map-marker-alt text-blue-600"></i> امانة العاصمة - صنعاء</li>
+                    <li class="flex items-center gap-3"><i class="fab fa-whatsapp text-green-500"></i> اطلب عبر الواتساب</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-black text-lg mb-8 border-r-4 border-blue-600 pr-3">قريباً.. 📱</h4>
+                <p class="text-xs text-gray-500 mb-6 font-bold uppercase tracking-widest">تطبيقات الهواتف الذكية</p>
+                <div class="flex flex-col gap-3">
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5 opacity-50 flex items-center gap-3 transition hover:bg-white/10">
+                        <i class="fab fa-apple text-2xl"></i> <span class="text-xs font-black">App Store</span>
+                    </div>
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5 opacity-50 flex items-center gap-3 transition hover:bg-white/10">
+                        <i class="fab fa-google-play text-xl"></i> <span class="text-xs font-black">Google Play</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-12 text-gray-600 text-xs font-bold">
+            جميع الحقوق محفوظة لشركة البرق للتوصيل © 2026 | صنعاء، اليمن
+        </div>
+    </footer>
 
     <script src="script.js"></script>
 
     <script>
-        /* --- دوال القائمة الجانبية للهاتف (إضافة فقط) --- */
-        function toggleMobileMenu(show) {
+        // --- دوال التحكم في الواجهة ---
+        function toggleMenu(s) {
             const menu = document.getElementById('mobile-menu');
-            const overlay = document.getElementById('cartOverlay');
-            if(show) {
+            const overlay = document.getElementById('common-overlay');
+            if(s) {
                 menu.classList.add('open');
-                overlay.classList.add('active');
+                overlay.style.display = 'block';
+                setTimeout(() => overlay.style.opacity = '1', 10);
             } else {
                 menu.classList.remove('open');
-                overlay.classList.remove('active');
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.display = 'none', 500);
             }
         }
 
-        function closeAllPanels() {
-            toggleMobileMenu(false);
-            if(document.getElementById('side-cart').classList.contains('open')) {
-                toggleCart();
+        function toggleCart(s) {
+            const cart = document.getElementById('side-cart');
+            const overlay = document.getElementById('common-overlay');
+            if(s === undefined) s = !cart.classList.contains('open');
+            
+            if(s) {
+                cart.classList.add('open');
+                overlay.style.display = 'block';
+                setTimeout(() => overlay.style.opacity = '1', 10);
+                renderCartUI();
+            } else {
+                cart.classList.remove('open');
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.display = 'none', 500);
             }
         }
-        /* ------------------------------------------- */
 
+        function closePanels() { toggleMenu(false); toggleCart(false); }
+
+        // --- نظام البيانات (الربط بالملف الخارجي والـ LocalStorage) ---
         function loadData() {
-            // جلب البيانات اليدوية والآلية
+            // جلب البيانات من الملف الخارجي (المتغير defaultRestaurants)
             const base = typeof defaultRestaurants !== 'undefined' ? defaultRestaurants : [];
+            // جلب البيانات من الآدمن
             const admin = JSON.parse(localStorage.getItem('barq_restaurants')) || [];
+            
+            // دمج القائمتين
             const allRestaurants = [...admin, ...base];
+            
             render(allRestaurants);
             updateBadge();
         }
@@ -218,11 +235,13 @@
         function render(list) {
             const grid = document.getElementById('restaurants-grid');
             if(list.length === 0) {
-                grid.innerHTML = `<p class="col-span-full text-center text-gray-400 font-bold py-10">لا توجد مطاعم بهذا الاسم</p>`;
+                grid.innerHTML = `<div class="col-span-full text-center py-20">
+                    <i class="fas fa-search text-4xl text-gray-200 mb-4 block"></i>
+                    <p class="text-gray-400 font-bold">لا توجد مطاعم بهذا الاسم</p>
+                </div>`;
                 return;
             }
-
-            grid.innerHTML = list.map((res, i) => `
+            grid.innerHTML = list.map(res => `
                 <div class="res-card" onclick="openMenu('${res.id}', '${res.name}')">
                     <div class="image-box">
                         <div class="glass-tag">${res.badge || 'توصيل متاح'}</div>
@@ -235,8 +254,8 @@
                         </div>
                         <p class="text-gray-400 text-sm mb-6"><i class="fas fa-map-marker-alt text-blue-500 ml-1"></i> ${res.address || 'صنعاء'}</p>
                         <div class="flex justify-between items-center border-t pt-4">
-                            <div class="text-xs font-bold text-gray-600"><i class="fas fa-clock text-blue-600 ml-1"></i> 30 دقيقة</div>
-                            <button class="order-btn text-xs">عرض المنيو <i class="fas fa-chevron-left mr-1"></i></button>
+                            <div class="text-xs font-bold text-gray-600"><i class="fas fa-clock text-blue-600 ml-1"></i> 30-40 دقيقة</div>
+                            <button class="order-btn text-xs">عرض القائمة <i class="fas fa-chevron-left mr-1"></i></button>
                         </div>
                     </div>
                 </div>
@@ -247,8 +266,9 @@
             const term = document.getElementById('searchInput').value.toLowerCase();
             const base = typeof defaultRestaurants !== 'undefined' ? defaultRestaurants : [];
             const admin = JSON.parse(localStorage.getItem('barq_restaurants')) || [];
-            const combined = [...admin, ...base];
-            const filtered = combined.filter(r => r.name.toLowerCase().includes(term));
+            const all = [...admin, ...base]; 
+            
+            const filtered = all.filter(r => r.name.toLowerCase().includes(term));
             render(filtered);
         }
 
@@ -258,53 +278,108 @@
             window.location.href = 'menu.html';
         }
 
-        // وظائف السلة
-        function toggleCart() {
-            document.getElementById('side-cart').classList.toggle('open');
-            document.getElementById('cartOverlay').classList.toggle('active');
-            renderCartUI();
+        // --- نظام السلة الموحد ---
+        function updateBadge() {
+            const cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+            const badge = document.getElementById('cart-badge-main');
+            const totalItems = cart.reduce((s, i) => s + (i.quantity || i.qty || 0), 0);
+            
+            if(badge) {
+                badge.innerText = totalItems;
+                badge.style.display = totalItems > 0 ? 'flex' : 'none';
+            }
         }
 
         function renderCartUI() {
             const cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
             const container = document.getElementById('cart-content');
             let total = 0;
+            
             if(cart.length === 0) {
-                container.innerHTML = `<p class="text-center text-gray-400 font-bold mt-10">السلة فارغة</p>`;
-            } else {
-                container.innerHTML = cart.map((item, idx) => {
-                    total += (item.price * item.qty);
-                    return `<div class="bg-gray-50 p-3 rounded-xl mb-2 flex justify-between items-center border">
-                        <div class="text-right">
-                            <p class="text-sm font-black">${item.name}</p>
-                            <p class="text-xs text-blue-600 font-bold">${item.price} ر.ي</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="changeQty(${idx}, 1); event.stopPropagation();" class="text-blue-600 font-bold">+</button>
-                            <span class="font-bold">${item.qty}</span>
-                            <button onclick="changeQty(${idx}, -1); event.stopPropagation();" class="text-red-500 font-bold">-</button>
-                        </div>
-                    </div>`;
-                }).join('');
+                container.innerHTML = `<div class="text-center py-10 text-gray-400 font-bold">السلة فارغة</div>`;
+                document.getElementById('final-total').innerText = '0 ر.ي';
+                return;
             }
+
+            container.innerHTML = cart.map((item, idx) => {
+                const qty = item.quantity || item.qty || 0;
+                total += (item.price * qty);
+                return `
+                <div class="bg-gray-50 p-4 rounded-2xl mb-3 flex justify-between items-center border border-gray-100">
+                    <div class="text-right">
+                        <p class="text-sm font-black text-gray-800">${item.name}</p>
+                        <p class="text-xs text-blue-600 font-bold">${item.price} ر.ي</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="changeQty(${idx}, 1)" class="w-7 h-7 bg-white shadow-sm rounded-lg text-blue-600 font-bold">+</button>
+                        <span class="font-bold text-sm">${qty}</span>
+                        <button onclick="changeQty(${idx}, -1)" class="w-7 h-7 bg-white shadow-sm rounded-lg text-red-500 font-bold">-</button>
+                    </div>
+                </div>`;
+            }).join('');
             document.getElementById('final-total').innerText = total + ' ر.ي';
         }
 
         function changeQty(idx, delta) {
             let cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
-            cart[idx].qty += delta;
-            if(cart[idx].qty <= 0) cart.splice(idx, 1);
+            let item = cart[idx];
+            let currentQty = item.quantity || item.qty || 0;
+            currentQty += delta;
+            
+            if(currentQty <= 0) {
+                cart.splice(idx, 1);
+            } else {
+                if(item.quantity !== undefined) item.quantity = currentQty;
+                if(item.qty !== undefined) item.qty = currentQty;
+            }
+            
             localStorage.setItem('barq_cart', JSON.stringify(cart));
             renderCartUI();
             updateBadge();
         }
 
-        function updateBadge() {
-            const cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
-            document.getElementById('cart-badge').innerText = cart.reduce((s, i) => s + i.qty, 0);
-        }
-
         window.onload = loadData;
     </script>
+    <div id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" 
+    class="fixed bottom-8 right-8 w-14 h-14 bg-[#0057FF] text-white rounded-2xl shadow-2xl flex items-center justify-center cursor-pointer opacity-0 invisible translate-y-10 transition-all duration-500 z-[9999] hover:bg-[#FF6B00] hover:-translate-y-2 group">
+    <i class="fas fa-chevron-up text-xl transition-transform group-hover:scale-125"></i>
+</div>
+
+<style>
+    /* كود التنسيق لضمان الظهور عند التمرير */
+    #backToTop.show {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateY(0) !important;
+    }
+</style>
+
+<script>
+    // دالة التحكم في ظهور الزر عند التمرير
+    window.onscroll = function() {
+        const btn = document.getElementById('backToTop');
+        if (window.scrollY > 300) {
+            btn.classList.add('show');
+        } else {
+            btn.classList.remove('show');
+        }
+    };
+
+    // بقية الدوال الخاصة بك (تأكد من وجودها)
+    function toggleMobileMenu(show) {
+        const menu = document.getElementById('mobile-menu');
+        const overlay = document.getElementById('cartOverlay');
+        if(show) {
+            menu.classList.add('open');
+            overlay.classList.add('active');
+        } else {
+            menu.classList.remove('open');
+            overlay.classList.remove('active');
+        }
+    }
+    
+    // ... (بقية دوال السلة والبيانات التي لديك) ...
+    window.onload = loadData; 
+</script>
 </body>
 </html>

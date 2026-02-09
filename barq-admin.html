@@ -1,604 +1,14 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام البرق السلطاني | التحكم المركزي الشامل ⚡</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <style>
-        :root {
-            --primary: #0057FF;
-            --primary-dark: #003ECC;
-            --secondary: #6366f1;
-            --accent: #f59e0b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --dark-bg: #0f172a;
-            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        }
-
-        * { font-family: 'Cairo', sans-serif; scroll-behavior: smooth; }
-        body { background-color: #f1f5f9; color: #1e293b; overflow-x: hidden; }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
-
-        /* Sidebar Glassmorphism */
-        .sidebar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-left: 1px solid rgba(0,0,0,0.05);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .nav-item {
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        .nav-item.active {
-            background: linear-gradient(90deg, transparent, rgba(0, 87, 255, 0.1), rgba(0, 87, 255, 0.2));
-            color: var(--primary);
-            border-right: 4px solid var(--primary);
-        }
-
-        .glass-card {
-            background: white;
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.7);
-            box-shadow: var(--card-shadow);
-        }
-
-        /* Animations */
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .tab-content { display: none; animation: slideUp 0.5s ease-out forwards; }
-        .tab-content.active { display: block; }
-
-        /* Inputs */
-        .luxury-input {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 12px 16px;
-            transition: all 0.3s;
-            width: 100%;
-        }
-        .luxury-input:focus {
-            border-color: var(--primary);
-            background: white;
-            box-shadow: 0 0 0 4px rgba(0, 87, 255, 0.1);
-            outline: none;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            box-shadow: 0 4px 15px rgba(0, 87, 255, 0.3);
-        }
-        
-        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; }
-
-        /* Quick View Stats */
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 16px;
-        }
-    </style>
-</head>
-<body class="min-h-screen flex">
-
-    <aside class="sidebar fixed inset-y-0 right-0 w-72 z-50 transform lg:translate-x-0 transition-transform duration-300 hidden lg:flex flex-col">
-        <div class="p-8">
-            <div class="flex items-center gap-3">
-                <div class="bg-blue-600 w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg">
-                    <i class="fas fa-bolt text-xl"></i>
-                </div>
-                <span class="text-2xl font-black tracking-tighter">البرق <span class="text-blue-600 uppercase text-xs">Admin</span></span>
-            </div>
-        </div>
-
-        <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
-            <p class="text-[10px] font-black text-gray-400 px-4 uppercase tracking-widest mb-2">القائمة الرئيسية</p>
-            <div onclick="switchTab('tab-dash', this)" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer font-bold">
-                <i class="fas fa-chart-line"></i> لوحة الإحصائيات
-            </div>
-            <div onclick="switchTab('tab-res', this)" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer font-bold text-gray-500">
-                <i class="fas fa-store"></i> إدارة المطاعم
-            </div>
-            <div onclick="switchTab('tab-menu', this)" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer font-bold text-gray-500">
-                <i class="fas fa-utensils"></i> إدارة المنيو الشامل
-            </div>
-            <div onclick="switchTab('tab-offers', this)" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer font-bold text-gray-500">
-                <i class="fas fa-percentage"></i> العروض والخصومات
-            </div>
-            
-            <p class="text-[10px] font-black text-gray-400 px-4 uppercase tracking-widest mt-8 mb-2">النظام والمالية</p>
-            <div onclick="switchTab('tab-finance', this)" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer font-bold text-gray-500">
-                <i class="fas fa-wallet"></i> التقارير المالية
-            </div>
-            <div id="staff-link" onclick="switchTab('tab-staff', this)" class="nav-item hidden flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer font-bold text-gray-500">
-                <i class="fas fa-users-gear"></i> إدارة الموظفين
-            </div>
-            <div onclick="switchTab('tab-security', this)" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer font-bold text-gray-500">
-                <i class="fas fa-shield-halved"></i> مركز الأمان
-            </div>
-        </nav>
-
-        <div class="p-6 border-t">
-            <button onclick="logout()" class="flex items-center gap-3 text-red-500 font-bold px-4 py-2 hover:bg-red-50 w-full rounded-xl transition">
-                <i class="fas fa-right-from-bracket"></i> تسجيل الخروج
-            </button>
-        </div>
-    </aside>
-
-    <main class="flex-1 lg:mr-72 p-4 lg:p-8">
-        
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-            <div>
-                <h2 id="page-title" class="text-3xl font-black text-slate-800">مرحباً بك، أستاذ أيمن 👋</h2>
-                <p class="text-slate-400 font-medium italic">إليك آخر مستجدات نظام البرق اليوم.</p>
-            </div>
-            <div class="flex items-center gap-4 bg-white p-2 rounded-2xl shadow-sm border">
-                <div class="px-4 text-left">
-                    <p class="text-xs text-gray-400 font-bold uppercase" id="admin-role">ADMIN</p>
-                    <p class="text-sm font-black text-slate-700" id="admin-name">جارِ التحميل...</p>
-                </div>
-                <div class="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xl">
-                    <i class="fas fa-user-tie"></i>
-                </div>
-            </div>
-        </header>
-
-        <div id="notif-bar" class="hidden mb-6 bg-blue-600 text-white p-4 rounded-2xl flex justify-between items-center shadow-lg shadow-blue-200">
-            <div class="flex items-center gap-3 italic font-bold">
-                <i class="fas fa-circle-info animate-pulse"></i>
-                <span id="notif-text">تم تحديث بيانات النظام بنجاح!</span>
-            </div>
-            <button onclick="this.parentElement.style.display='none'"><i class="fas fa-times"></i></button>
-        </div>
-
-        <div id="tab-dash" class="tab-content active space-y-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="glass-card p-6 flex items-center gap-4">
-                    <div class="stat-icon bg-blue-100 text-blue-600"><i class="fas fa-shop"></i></div>
-                    <div><p class="text-sm font-bold text-gray-400">إجمالي المطاعم</p><h3 id="stat-res" class="text-2xl font-black">0</h3></div>
-                </div>
-                <div class="glass-card p-6 flex items-center gap-4">
-                    <div class="stat-icon bg-orange-100 text-orange-600"><i class="fas fa-bowl-food"></i></div>
-                    <div><p class="text-sm font-bold text-gray-400">الوجبات</p><h3 id="stat-foods" class="text-2xl font-black">0</h3></div>
-                </div>
-                <div class="glass-card p-6 flex items-center gap-4">
-                    <div class="stat-icon bg-green-100 text-green-600"><i class="fas fa-users"></i></div>
-                    <div><p class="text-sm font-bold text-gray-400">الموظفين</p><h3 id="stat-users" class="text-2xl font-black">0</h3></div>
-                </div>
-                <div class="glass-card p-6 flex items-center gap-4">
-                    <div class="stat-icon bg-purple-100 text-purple-600"><i class="fas fa-ticket"></i></div>
-                    <div><p class="text-sm font-bold text-gray-400">الكوبونات</p><h3 id="stat-coupons" class="text-2xl font-black">0</h3></div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 glass-card p-8">
-                    <h3 class="font-black text-xl mb-6 flex justify-between items-center">
-                        تحليل المبيعات (تقرير أسبوعي)
-                        <span class="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-500 italic font-bold">LIVE DATA</span>
-                    </h3>
-                    <canvas id="salesChart" height="150"></canvas>
-                </div>
-                <div class="glass-card p-8">
-                    <h3 class="font-black text-xl mb-6">سجل العمليات الأخير</h3>
-                    <div id="activity-list" class="space-y-6">
-                        </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-res" class="tab-content space-y-8 text-right">
-            <div class="glass-card p-8">
-                <h3 class="font-black text-2xl mb-6 italic text-blue-600 border-b pb-4">إضافة شريك جديد</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div><label class="block mb-2 font-bold text-sm">اسم المنشأة</label><input type="text" id="r-name" class="luxury-input" placeholder="مثلاً: مطاعم الشيباني"></div>
-                    <div><label class="block mb-2 font-bold text-sm">رسوم التوصيل</label><input type="number" id="r-fee" class="luxury-input" placeholder="500"></div>
-                    <div><label class="block mb-2 font-bold text-sm">مدة التوصيل</label><input type="text" id="r-time" class="luxury-input" placeholder="25-35 دقيقة"></div>
-                    <div class="md:col-span-3"><label class="block mb-2 font-bold text-sm">رابط شعار المطعم (URL)</label><input type="text" id="r-img" class="luxury-input" placeholder="https://..."></div>
-                </div>
-                <button onclick="addRes()" class="mt-8 btn-primary text-white px-12 py-4 rounded-2xl font-black transition-all hover:scale-105">حفظ وتفعيل المطعم</button>
-            </div>
-            
-            <div id="res-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                </div>
-        </div>
-
-        <div id="tab-menu" class="tab-content space-y-8 text-right">
-            <div class="glass-card p-8">
-                <div class="flex justify-between items-center mb-8 border-b pb-4">
-                    <h3 class="font-black text-2xl text-orange-600 italic">بناء قوائم الطعام</h3>
-                    <div class="bg-orange-50 text-orange-600 px-4 py-2 rounded-xl text-xs font-black">التحكم في المنيو</div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div><label class="block mb-2 font-bold text-sm">المطعم المستهدف</label><select id="f-res-select" class="luxury-input"></select></div>
-                    <div><label class="block mb-2 font-bold text-sm">اسم الوجبة</label><input type="text" id="f-name" class="luxury-input"></div>
-                    <div><label class="block mb-2 font-bold text-sm">السعر (ريال يمني)</label><input type="number" id="f-price" class="luxury-input"></div>
-                    <div><label class="block mb-2 font-bold text-sm">الحالة</label><select id="f-status" class="luxury-input"><option value="متوفر">متوفر ✅</option><option value="غير متوفر">نفذت الكمية ❌</option></select></div>
-                </div>
-                <button onclick="addFood()" class="mt-8 bg-orange-500 text-white px-10 py-4 rounded-2xl font-black shadow-lg shadow-orange-100 hover:bg-orange-600 transition">إدراج الصنف للمنيو</button>
-            </div>
-
-            <div id="menu-accordion" class="space-y-4">
-                </div>
-        </div>
-
-        <div id="tab-offers" class="tab-content text-right space-y-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="glass-card p-8 border-r-8 border-red-500">
-                    <h3 class="font-black text-xl text-red-600 mb-6 italic"><i class="fas fa-fire ml-2"></i>أنشئ عرضاً جديداً</h3>
-                    <div class="space-y-4">
-                        <input type="text" id="o-name" class="luxury-input" placeholder="اسم العرض">
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="number" id="o-old" class="luxury-input" placeholder="السعر قبل">
-                            <input type="number" id="o-new" class="luxury-input" placeholder="السعر بعد">
-                        </div>
-                        <input type="text" id="o-img" class="luxury-input" placeholder="رابط صورة العرض الفني">
-                        <button onclick="addOffer()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black shadow-xl">نشر العرض في التطبيق</button>
-                    </div>
-                </div>
-                <div class="glass-card p-8 border-r-8 border-purple-600">
-                    <h3 class="font-black text-xl text-purple-600 mb-6 italic"><i class="fas fa-ticket ml-2"></i>كوبونات الخصم</h3>
-                    <div class="space-y-4">
-                        <input type="text" id="c-code" class="luxury-input" placeholder="رمز الكوبون (مثل BARQ20)">
-                        <input type="number" id="c-val" class="luxury-input" placeholder="النسبة المئوية %">
-                        <button onclick="addCoupon()" class="w-full bg-purple-600 text-white py-4 rounded-2xl font-black shadow-xl">تفعيل الكود</button>
-                    </div>
-                    <div id="coupon-list-display" class="mt-6 space-y-3"></div>
-                </div>
-            </div>
-            
-            <h4 class="font-black text-xl mb-4 italic">العروض الحية حالياً</h4>
-            <div id="offers-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
-        </div>
-
-        <div id="tab-finance" class="tab-content text-right">
-            <div class="glass-card p-8 overflow-hidden">
-                <div class="flex justify-between items-center mb-8">
-                    <h3 class="font-black text-2xl italic">المحفظة المالية والتقارير</h3>
-                    <button class="bg-green-100 text-green-600 px-4 py-2 rounded-xl text-xs font-black"><i class="fas fa-file-export ml-1"></i>تصدير PDF</button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                    <div class="p-6 bg-slate-900 text-white rounded-3xl">
-                        <p class="text-xs text-slate-400 font-bold mb-2">إجمالي المبيعات (تقديري)</p>
-                        <h4 id="fin-sales" class="text-3xl font-black">0 <span class="text-sm">ر.ي</span></h4>
-                    </div>
-                    <div class="p-6 bg-blue-600 text-white rounded-3xl">
-                        <p class="text-xs text-blue-200 font-bold mb-2">صافي الربح (10%)</p>
-                        <h4 id="fin-profit" class="text-3xl font-black">0 <span class="text-sm">ر.ي</span></h4>
-                    </div>
-                    <div class="p-6 bg-white border-2 border-slate-100 rounded-3xl">
-                        <p class="text-xs text-slate-400 font-bold mb-2">عدد الطلبات المكتملة</p>
-                        <h4 class="text-3xl font-black">240</h4>
-                    </div>
-                </div>
-                
-                <h4 class="font-black mb-4">توزيع المبيعات حسب المطاعم</h4>
-                <div class="space-y-4" id="fin-res-list"></div>
-            </div>
-        </div>
-
-        <div id="tab-staff" class="tab-content text-right space-y-8">
-            <div class="glass-card p-8 max-w-2xl mx-auto">
-                <h3 class="font-black text-xl mb-6 text-green-600">تسجيل موظف جديد في البرق</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <input type="text" id="st-u" class="luxury-input" placeholder="اسم الدخول">
-                    <input type="password" id="st-p" class="luxury-input" placeholder="كلمة السر">
-                </div>
-                <select id="st-r" class="luxury-input mb-6">
-                    <option value="staff">موظف عمليات (صلاحية محدودة)</option>
-                    <option value="admin">مدير نظام (صلاحية كاملة)</option>
-                </select>
-                <button onclick="addStaff()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-lg">تثبيت الحساب</button>
-            </div>
-            
-            <div id="staff-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
-        </div>
-
-        <div id="tab-security" class="tab-content text-right">
-            <div class="max-w-xl mx-auto space-y-8">
-                <div class="glass-card p-8 border-t-8 border-slate-900 shadow-2xl">
-                    <h3 class="text-2xl font-black mb-2">مركز الهوية والأمان</h3>
-                    <p class="text-xs text-gray-400 font-bold mb-8 italic text-blue-600 italic">تغيير بيانات تسجيل الدخول الخاصة بك</p>
-                    
-                    <div class="space-y-6">
-                        <div id="admin-only-username" class="hidden">
-                            <label class="block text-xs font-black mb-2 text-slate-500">اسم المستخدم الجديد (صلاحية مدير)</label>
-                            <input type="text" id="upd-u" class="luxury-input">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-black mb-2 text-slate-500">كلمة المرور الجديدة</label>
-                            <input type="password" id="upd-p" class="luxury-input" placeholder="••••••••">
-                        </div>
-                        <button onclick="updateSecurity()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-black transition transform hover:scale-105">تحديث الملف الشخصي</button>
-                    </div>
-                </div>
-
-                <div class="glass-card p-8 border-2 border-red-50 border-dashed text-center">
-                    <h4 class="font-black text-red-600 mb-2">تهيئة النظام بالكامل</h4>
-                    <p class="text-xs text-gray-400 font-bold mb-6 italic font-bold">هذا الإجراء سيحذف كل المطاعم والوجبات والحسابات نهائياً</p>
-                    <button onclick="factoryReset()" class="bg-red-50 text-red-600 px-8 py-3 rounded-xl text-xs font-black border border-red-100">مسح كافة البيانات (Reset)</button>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
+    <title>Redirecting...</title>
     <script>
-        // --- الأساسيات والبيانات الضخمة ---
-        const activeUser = JSON.parse(localStorage.getItem('activeSession'));
-        if(!activeUser) window.location.href = 'login.html';
-        
-        // إعداد واجهة المستخدم بناءً على النوع
-        document.getElementById('admin-name').innerText = activeUser.user;
-        document.getElementById('admin-role').innerText = activeUser.role;
-        if(activeUser.role === 'admin') {
-            document.getElementById('staff-link').classList.remove('hidden');
-            document.getElementById('admin-only-username').classList.remove('hidden');
-        }
-
-        function getDB(k) { return JSON.parse(localStorage.getItem(k)) || []; }
-        function setDB(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
-
-        // --- تبديل التبويبات الفاخر ---
-        function switchTab(tabId, element) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => {
-                n.classList.remove('active');
-                n.classList.add('text-gray-500');
-            });
-
-            document.getElementById(tabId).classList.add('active');
-            element.classList.add('active');
-            element.classList.remove('text-gray-500');
-
-            renderData();
-        }
-
-        // --- نظام الإشعارات ---
-        function pushNotif(text) {
-            const bar = document.getElementById('notif-bar');
-            document.getElementById('notif-text').innerText = text;
-            bar.classList.remove('hidden');
-            setTimeout(() => bar.classList.add('hidden'), 5000);
-        }
-
-        // --- الرسم البياني (Chart.js) ---
-        let myChart;
-        function initChart() {
-            const ctx = document.getElementById('salesChart').getContext('2d');
-            if(myChart) myChart.destroy();
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
-                    datasets: [{
-                        label: 'المبيعات اليومية (ر.ي)',
-                        data: [12000, 19000, 15000, 25000, 22000, 30000, 45000],
-                        borderColor: '#0057FF',
-                        backgroundColor: 'rgba(0, 87, 255, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 4,
-                        pointRadius: 6,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#0057FF'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { display: false }, x: { grid: { display: false } } }
-                }
-            });
-        }
-
-        // --- العرض والتحكم (Render) ---
-        function renderData() {
-            const res = getDB('barq_restaurants');
-            const foods = []; res.forEach(r => foods.push(...r.menu));
-            const users = getDB('barq_users');
-            const coupons = getDB('barq_coupons');
-            const offers = getDB('barq_offers');
-
-            // 1. الإحصائيات الرئيسية
-            document.getElementById('stat-res').innerText = res.length;
-            document.getElementById('stat-foods').innerText = foods.length;
-            document.getElementById('stat-users').innerText = users.length;
-            document.getElementById('stat-coupons').innerText = coupons.length;
-
-            // 2. إدارة المطاعم
-            document.getElementById('res-grid').innerHTML = res.map(r => `
-                <div class="glass-card p-6 border-b-8 border-blue-600 transition hover:-translate-y-2">
-                    <div class="flex justify-between items-start mb-4">
-                        <img src="${r.img}" class="w-16 h-16 rounded-2xl object-cover bg-gray-50 border">
-                        <button onclick="delRes(${r.id})" class="text-red-300 hover:text-red-500"><i class="fas fa-trash-can"></i></button>
-                    </div>
-                    <h4 class="font-black text-xl mb-1">${r.name}</h4>
-                    <p class="text-xs text-gray-400 font-bold mb-4 italic"><i class="fas fa-clock ml-1"></i> التوصيل خلال: ${r.time}</p>
-                    <div class="flex justify-between items-center pt-4 border-t border-dashed">
-                        <span class="text-blue-600 font-black text-sm">${r.fee} ريال</span>
-                        <span class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-black uppercase">نشط حالياً</span>
-                    </div>
-                </div>
-            `).join('');
-
-            // 3. المنيو (Accordion)
-            document.getElementById('f-res-select').innerHTML = '<option value="">-- اختر المطعم المستهدف --</option>' + res.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
-            document.getElementById('menu-accordion').innerHTML = res.map(r => `
-                <div class="glass-card overflow-hidden">
-                    <div class="bg-slate-50 p-5 flex justify-between items-center">
-                        <div class="flex items-center gap-3">
-                            <span class="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-black">${r.menu.length}</span>
-                            <span class="font-black text-slate-700">${r.name}</span>
-                        </div>
-                        <i class="fas fa-chevron-down text-slate-300"></i>
-                    </div>
-                    <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-white">
-                        ${r.menu.map(f => `
-                            <div class="p-3 border rounded-2xl flex justify-between items-center group hover:border-orange-500">
-                                <div class="text-right">
-                                    <p class="font-bold text-xs">${f.name}</p>
-                                    <p class="text-[10px] text-orange-600 font-black">${f.price} ر.ي</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="status-dot ${f.status === 'متوفر' ? 'bg-green-500' : 'bg-red-500'}"></span>
-                                    <button onclick="delFood(${r.id}, ${f.id})" class="text-red-200 group-hover:text-red-500"><i class="fas fa-circle-xmark"></i></button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
-
-            // 4. العروض والكوبونات
-            document.getElementById('offers-grid').innerHTML = offers.map(o => `
-                <div class="glass-card overflow-hidden p-0 relative group">
-                    <img src="${o.img}" class="w-full h-40 object-cover">
-                    <div class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg">خصم قوي 🔥</div>
-                    <div class="p-4">
-                        <h4 class="font-black text-sm mb-2">${o.name}</h4>
-                        <div class="flex items-center gap-2 font-black">
-                            <span class="text-red-600 text-lg">${o.newP} ر.ي</span>
-                            <span class="text-gray-300 text-xs line-through">${o.oldP} ر.ي</span>
-                        </div>
-                        <button onclick="delOffer(${o.id})" class="w-full mt-4 text-xs font-bold text-red-300 hover:text-red-600">إلغاء العرض</button>
-                    </div>
-                </div>
-            `).join('');
-
-            document.getElementById('coupon-list-display').innerHTML = coupons.map(c => `
-                <div class="bg-purple-50 p-4 rounded-2xl border border-purple-100 flex justify-between items-center italic font-black text-sm">
-                    <span class="text-purple-700"><i class="fas fa-ticket ml-2"></i> ${c.code}</span>
-                    <div class="flex items-center gap-4">
-                        <span class="bg-purple-600 text-white px-3 py-1 rounded-lg text-[10px]">${c.val}%</span>
-                        <button onclick="delCoupon(${c.id})" class="text-red-400"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                </div>
-            `).join('');
-
-            // 5. الموظفين
-            document.getElementById('staff-grid').innerHTML = users.map((u, i) => `
-                <div class="glass-card p-6 flex justify-between items-center group">
-                    <div class="flex items-center gap-4 text-right">
-                        <div class="w-10 h-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center font-black">${u.user.charAt(0)}</div>
-                        <div><p class="font-black text-sm">${u.user}</p><p class="text-[9px] uppercase font-bold text-gray-400">${u.role}</p></div>
-                    </div>
-                    ${u.user !== 'ايمن' ? `<button onclick="delStaff(${i})" class="text-red-300 hover:text-red-600"><i class="fas fa-user-xmark"></i></button>` : '<i class="fas fa-crown text-yellow-500"></i>'}
-                </div>
-            `).join('');
-
-            // 6. المالية (محاكاة)
-            document.getElementById('fin-sales').innerText = (foods.length * 1500).toLocaleString();
-            document.getElementById('fin-profit').innerText = (foods.length * 1500 * 0.1).toLocaleString();
-            document.getElementById('fin-res-list').innerHTML = res.map(r => `
-                <div class="flex justify-between items-center p-3 hover:bg-slate-50 rounded-xl transition">
-                    <span class="text-xs font-bold text-slate-600 italic font-bold">${r.name}</span>
-                    <div class="w-1/2 bg-gray-100 h-2 rounded-full overflow-hidden mx-4"><div class="bg-blue-600 h-full" style="width: ${Math.random()*80}%"></div></div>
-                    <span class="text-xs font-black">${(Math.random()*100000).toFixed(0)} ر.ي</span>
-                </div>
-            `).join('');
-
-            // 7. سجل العمليات (محاكاة)
-            const logs = ["إضافة مطعم جديد", "تحديث كلمة السر", "إنشاء كوبون", "تعديل سعر وجبة"];
-            document.getElementById('activity-list').innerHTML = logs.map(l => `
-                <div class="flex items-center gap-4">
-                    <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
-                    <div><p class="text-xs font-bold text-slate-700">${l}</p><p class="text-[9px] text-gray-400">منذ قليل</p></div>
-                </div>
-            `).join('');
-
-            initChart();
-        }
-
-        // --- الأفعال التنفيذية (CRUD) ---
-        function addRes() {
-            const n=document.getElementById('r-name').value, f=document.getElementById('r-fee').value, t=document.getElementById('r-time').value, i=document.getElementById('r-img').value;
-            if(!n || !i) return alert("يرجى ملء كافة البيانات");
-            const db = getDB('barq_restaurants');
-            db.push({ id: Date.now(), name: n, fee: f, time: t, img: i, menu: [] });
-            setDB('barq_restaurants', db);
-            pushNotif(`تم إضافة المطعم "${n}" بنجاح!`);
-            renderData();
-        }
-        function delRes(id) { if(confirm("حذف المطعم نهائياً؟")) { setDB('barq_restaurants', getDB('barq_restaurants').filter(r => r.id !== id)); renderData(); } }
-
-        function addFood() {
-            const rId = document.getElementById('f-res-select').value, n = document.getElementById('f-name').value, p = document.getElementById('f-price').value, s = document.getElementById('f-status').value;
-            if(!rId || !n || !p) return alert("أكمل بيانات الوجبة");
-            const db = getDB('barq_restaurants');
-            const idx = db.findIndex(r => r.id == rId);
-            db[idx].menu.push({ id: Date.now(), name: n, price: p, status: s });
-            setDB('barq_restaurants', db);
-            pushNotif("تم إضافة صنف جديد للمنيو");
-            renderData();
-        }
-        function delFood(rid, fid) { const db=getDB('barq_restaurants'); const i=db.findIndex(r=>r.id==rid); db[i].menu=db[i].menu.filter(f=>f.id!==fid); setDB('barq_restaurants', db); renderData(); }
-
-        function addOffer() {
-            const n=document.getElementById('o-name').value, o=document.getElementById('o-old').value, nw=document.getElementById('o-new').value, i=document.getElementById('o-img').value;
-            if(!n || !nw || !i) return alert("بيانات العرض ناقصة");
-            const db = getDB('barq_offers');
-            db.push({ id: Date.now(), name: n, oldP: o, newP: nw, img: i });
-            setDB('barq_offers', db);
-            pushNotif("تم نشر العرض الجديد");
-            renderData();
-        }
-        function delOffer(id) { setDB('barq_offers', getDB('barq_offers').filter(o => o.id !== id)); renderData(); }
-
-        function addCoupon() {
-            const c=document.getElementById('c-code').value, v=document.getElementById('c-val').value;
-            if(!c || !v) return;
-            const db = getDB('barq_coupons');
-            db.push({ id: Date.now(), code: c, val: v });
-            setDB('barq_coupons', db);
-            renderData();
-        }
-        function delCoupon(id) { setDB('barq_coupons', getDB('barq_coupons').filter(c => c.id !== id)); renderData(); }
-
-        function addStaff() {
-            const u=document.getElementById('st-u').value, p=document.getElementById('st-p').value, r=document.getElementById('st-r').value;
-            if(!u || !p) return;
-            const db = getDB('barq_users');
-            db.push({ user: u, pass: p, role: r });
-            setDB('barq_users', db);
-            pushNotif(`تم إنشاء حساب جديد لـ ${u}`);
-            renderData();
-        }
-        function delStaff(i) { const db=getDB('barq_users'); db.splice(i, 1); setDB('barq_users', db); renderData(); }
-
-        function updateSecurity() {
-            const nu = document.getElementById('upd-u').value.trim(), np = document.getElementById('upd-p').value.trim();
-            let users = getDB('barq_users');
-            const idx = users.findIndex(u => u.user === activeUser.user);
-            if(nu && activeUser.role === 'admin') users[idx].user = nu;
-            if(np) users[idx].pass = np;
-            setDB('barq_users', users);
-            alert("تم تحديث بياناتك! سيتم إعادة توجيهك.");
-            logout();
-        }
-
-        function factoryReset() { if(confirm("تحذير قاتل: سيتم مسح كل شيء بلا استثناء! هل أنت متأكد؟")) { localStorage.clear(); window.location.reload(); } }
-
-        function logout() { localStorage.removeItem('activeSession'); window.location.href = 'login.html'; }
-
-        // القمة التشغيلية
-        window.onload = renderData;
+        // This page is obsolete. Redirecting to the main admin panel.
+        window.location.replace("admin.html");
     </script>
+</head>
+<body>
+    <p>إذا لم يتم إعادة توجيهك تلقائياً، <a href="admin.html">اضغط هنا</a>.</p>
 </body>
 </html>

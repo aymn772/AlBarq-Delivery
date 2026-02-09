@@ -6,7 +6,7 @@
     <title>تأكيد الطلب | البرق ⚡</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -16,37 +16,44 @@
         :root { 
             --main-blue: #0057FF; 
             --main-orange: #FF6B00; 
+            --bg-light: #f8faff;
         }
         
         body { 
             font-family: 'Cairo', sans-serif; 
-            background: #f8faff; 
+            background: var(--bg-light); 
             color: #1e293b; 
+            scroll-behavior: smooth;
         }
         
+        /* تصميم البطاقات */
         .card { 
             background: white; 
-            border-radius: 28px; 
-            border: 1px solid rgba(0,0,0,0.04); 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.02); 
+            border-radius: 32px; 
+            border: 1px solid rgba(0,0,0,0.03); 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.02);
+            transition: transform 0.3s ease;
         }
-        
+
+        /* تنسيق الخريطة */
         #map { 
-            height: 250px; 
+            height: 300px; 
             border-radius: 24px; 
-            border: 2px solid #f1f5f9; 
+            border: 3px solid #f1f5f9; 
             z-index: 10; 
             width: 100%; 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
         
+        /* تنسيق الحقول */
         .input-field { 
             background: #f8fafc; 
             border: 2px solid #f1f5f9; 
-            border-radius: 18px; 
-            padding: 16px; 
+            border-radius: 20px; 
+            padding: 18px; 
             font-weight: 700; 
             width: 100%; 
-            transition: 0.3s; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             outline: none; 
             text-align: right; 
         }
@@ -54,326 +61,398 @@
         .input-field:focus { 
             border-color: var(--main-blue); 
             background: white; 
-            box-shadow: 0 0 0 4px rgba(0,87,255,0.1); 
+            box-shadow: 0 10px 20px rgba(0,87,255,0.05);
         }
+
+        /* خيارات الدفع المخصصة */
+        .payment-card {
+            cursor: pointer;
+            position: relative;
+            border: 2px solid #f1f5f9;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .payment-radio:checked + .payment-content {
+            border-color: var(--main-blue);
+            background-color: #eff6ff;
+        }
+
+        .payment-radio:checked + .payment-content .icon-box {
+            background: var(--main-blue);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .icon-box {
+            transition: all 0.3s ease;
+        }
+
+        /* شريط التنقل */
+        nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* تحسينات الموبايل */
+        @media (max-width: 640px) {
+            .card { border-radius: 24px; padding: 1.5rem !important; }
+            #map { height: 200px; }
+        }
+
+        /* انيميشن */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-up { animation: slideUp 0.5s ease forwards; }
     </style>
 </head>
 <body class="pb-10">
 
-    <nav class="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-[1000] py-4 px-[6%] border-b border-gray-100 flex justify-between items-center">
-        <button onclick="history.back()" class="w-11 h-11 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-700 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+    <nav class="fixed top-0 left-0 right-0 z-[1000] py-4 px-[6%] flex justify-between items-center">
+        <button onclick="history.back()" class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-700 hover:bg-blue-600 hover:text-white transition-all active:scale-90">
             <i class="fas fa-arrow-right"></i>
         </button>
-        <span class="text-xl font-black text-gray-900 italic underline decoration-blue-500 underline-offset-8">مراجعة <span class="text-blue-600">الطلب</span> ⚡</span>
-        <div class="w-11"></div>
+        <div class="text-center">
+            <span class="block text-xs font-black text-blue-600 uppercase tracking-widest mb-1">البرق للتوصيل</span>
+            <h1 class="text-xl font-black text-gray-900 italic">تأكيد الطلب ⚡</h1>
+        </div>
+        <div class="w-12"></div>
     </nav>
 
-    <main class="max-w-6xl mx-auto px-4 mt-24 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <main class="max-w-6xl mx-auto px-4 mt-28 grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         <div class="lg:col-span-7 space-y-6">
-            <div class="card p-6">
-                <h3 class="text-lg font-black mb-6 flex items-center gap-3 text-gray-800">
-                    <i class="fas fa-shopping-bag text-blue-600"></i> محتويات السلة
-                </h3>
-                <div id="cart-list" class="space-y-4">
-                    <!-- سيتم ملؤها بواسطة JavaScript -->
+            
+            <section class="card p-8 animate-up" style="animation-delay: 0.1s">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-black flex items-center gap-3 text-gray-800">
+                        <i class="fas fa-shopping-basket text-blue-600 bg-blue-50 p-2 rounded-lg"></i>
+                        مراجعة الوجبات
+                    </h3>
+                    <span id="items-count" class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">0 أصناف</span>
                 </div>
-            </div>
+                
+                <div id="cart-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    </div>
+            </section>
 
-            <div class="card p-6">
-                <h3 class="text-lg font-black mb-4 flex items-center gap-3 text-gray-800">
-                    <i class="fas fa-map-marked-alt text-blue-600"></i> عنوان التوصيل
+            <section class="card p-8 animate-up" style="animation-delay: 0.2s">
+                <h3 class="text-lg font-black mb-6 flex items-center gap-3 text-gray-800">
+                    <i class="fas fa-wallet text-blue-600 bg-blue-50 p-2 rounded-lg"></i>
+                    طريقة الدفع المفضلـة
                 </h3>
-                <div class="space-y-4">
-                    <input type="tel" id="user-phone" placeholder="رقم الهاتف (7xxxxxxxx)" class="input-field">
-                    <input type="text" id="user-address" placeholder="وصف العنوان (الحي، المعلم القريب)" class="input-field">
-                    
-                    <div class="pt-2">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="text-xs font-black text-gray-400 italic">موقعك على الخريطة 📍</span>
-                            <button onclick="detectLocation()" class="text-[10px] font-black bg-blue-50 text-blue-600 px-4 py-2 rounded-xl border border-blue-100">
-                                <i class="fas fa-location-arrow ml-1"></i> تحديد تلقائي GPS
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label class="relative block group">
+                        <input type="radio" name="payment_method" value="الدفع عند الاستلام" class="peer hidden payment-radio" checked>
+                        <div class="payment-content payment-card p-5 rounded-3xl border-2 flex flex-col items-center text-center gap-3">
+                            <div class="icon-box w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-500">
+                                <i class="fas fa-money-bill-wave text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-black text-sm text-gray-900">نقدًا (كاش)</p>
+                                <p class="text-[10px] text-gray-400 font-bold">عند استلام الطلب</p>
+                            </div>
+                            <div class="absolute top-3 left-3 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                <i class="fas fa-check-circle text-blue-600"></i>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="relative block group">
+                        <input type="radio" name="payment_method" value="عبر محفظة إلكترونية" class="peer hidden payment-radio">
+                        <div class="payment-content payment-card p-5 rounded-3xl border-2 flex flex-col items-center text-center gap-3">
+                            <div class="icon-box w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-500">
+                                <i class="fas fa-mobile-screen text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-black text-sm text-gray-900">محفظة إلكترونية</p>
+                                <p class="text-[10px] text-gray-400 font-bold">كريمي / أم فلوس / غيرها</p>
+                            </div>
+                            <div class="absolute top-3 left-3 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                <i class="fas fa-check-circle text-blue-600"></i>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </section>
+
+            <section class="card p-8 animate-up" style="animation-delay: 0.3s">
+                <h3 class="text-lg font-black mb-6 flex items-center gap-3 text-gray-800">
+                    <i class="fas fa-map-marker-alt text-blue-600 bg-blue-50 p-2 rounded-lg"></i>
+                    بيانات التوصيل
+                </h3>
+                
+                <div class="space-y-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="relative">
+                            <i class="fas fa-phone absolute right-5 top-5 text-gray-400"></i>
+                            <input type="tel" id="user-phone" placeholder="رقم الموبايل" class="input-field pr-12">
+                        </div>
+                        <div class="relative">
+                            <i class="fas fa-map absolute right-5 top-5 text-gray-400"></i>
+                            <input type="text" id="user-address" placeholder="وصف الحي / المنزل" class="input-field pr-12">
+                        </div>
+                    </div>
+
+                    <div class="relative pt-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-sm font-black text-gray-500 italic">حدد موقعك بدقة 📍</span>
+                            <button onclick="detectLocation()" class="text-xs font-black text-blue-600 bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition-colors">
+                                <i class="fas fa-location-crosshairs ml-1"></i> تحديد تلقائي GPS
                             </button>
                         </div>
                         <div id="map"></div>
+                        <p class="text-[10px] text-gray-400 mt-2 font-bold text-center italic">* يمكنك سحب العلامة الزرقاء لتحديد موقعك بالضبط</p>
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
 
-        <div class="lg:col-span-5 space-y-6">
-            <div class="card p-6 border-2 border-dashed border-blue-100 bg-blue-50/30">
-                <h3 class="text-sm font-black mb-3">هل لديك كوبون خصم؟</h3>
-                <div class="flex gap-2">
-                    <input type="text" id="coupon-code" placeholder="أدخل الكود" class="input-field py-3 text-center uppercase">
-                    <button onclick="applyCoupon()" class="bg-gray-900 text-white px-6 rounded-2xl font-black text-sm transition-transform active:scale-90">تفعيل</button>
-                </div>
-            </div>
-
-            <div class="card p-8 bg-gray-900 text-white shadow-2xl shadow-blue-200">
-                <h3 class="text-xl font-black mb-6 italic border-b border-gray-800 pb-4">ملخص الفاتورة</h3>
-                <div class="space-y-4 mb-8 text-gray-400 font-bold">
-                    <div class="flex justify-between items-center">
-                        <span>مجموع الوجبات:</span>
-                        <span id="subtotal" class="text-white">0 ر.ي</span>
-                    </div>
-                    <div class="flex justify-between items-center text-green-400">
-                        <span>خصم الكوبون:</span>
-                        <span id="discount">0 ر.ي</span>
-                    </div>
-                    <div class="flex justify-between items-center text-sm">
-                        <span>رسوم التوصيل:</span>
-                        <span class="text-white">حسب المنطقة</span>
+        <div class="lg:col-span-5">
+            <div class="sticky top-28 space-y-6">
+                
+                <div class="card p-6 border-2 border-dashed border-blue-100 bg-blue-50/20 animate-up" style="animation-delay: 0.4s">
+                    <h3 class="text-xs font-black mb-3 text-blue-600">كوبون خصم "البرق" ⚡</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="coupon-code" placeholder="أدخل الكود هنا" class="input-field py-3 text-center uppercase tracking-widest text-sm">
+                        <button onclick="applyCoupon()" class="bg-gray-900 text-white px-6 rounded-2xl font-black text-sm hover:bg-blue-600 transition-all active:scale-90">تفعيل</button>
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center text-3xl font-black pt-6 border-t border-gray-800 mb-8">
-                    <span class="text-lg">الإجمالي:</span>
-                    <span id="total-price" class="text-blue-400">0 ر.ي</span>
+                <div class="card p-8 bg-gray-900 text-white shadow-2xl shadow-blue-200 animate-up" style="animation-delay: 0.5s">
+                    <h3 class="text-xl font-black mb-8 italic border-b border-gray-800 pb-4 flex justify-between">
+                        ملخص الفاتورة
+                        <i class="fas fa-file-invoice-dollar text-gray-700"></i>
+                    </h3>
+                    
+                    <div class="space-y-5 mb-10 text-gray-400 font-bold">
+                        <div class="flex justify-between items-center">
+                            <span>قيمة الوجبات:</span>
+                            <span id="subtotal" class="text-white text-lg font-black">0 ر.ي</span>
+                        </div>
+                        <div id="discount-row" class="flex justify-between items-center text-green-400 hidden">
+                            <span>خصم الكوبون:</span>
+                            <span id="discount-val" class="font-black">- 0 ر.ي</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>رسوم التوصيل:</span>
+                            <div class="text-right">
+                                <span class="text-blue-400 text-xs block font-black">يتم تحديدها لاحقاً</span>
+                                <span class="text-[9px] text-gray-500">حسب المسافة من المطعم</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-gray-800 mb-10">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="text-gray-500 text-xs block font-black mb-1">الإجمالي المطلوب</span>
+                                <span class="text-3xl font-black text-white" id="total-price">0 <small class="text-sm">ر.ي</small></span>
+                            </div>
+                            <div class="text-left">
+                                <i class="fas fa-shield-check text-blue-500 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="sendFinalOrder()" class="w-full bg-[#25D366] text-white py-6 rounded-[24px] font-black text-xl flex items-center justify-center gap-4 shadow-xl hover:bg-[#1fb355] transition-all active:scale-95 group">
+                        <i class="fab fa-whatsapp text-3xl group-hover:rotate-12 transition-transform"></i>
+                        إرسال عبر الواتساب
+                    </button>
+                    
+                    <p class="text-[10px] text-gray-500 text-center mt-6 leading-relaxed">
+                        بالضغط على إرسال، سيتم فتح تطبيق الواتساب لمشاركة بيانات الطلب مع خدمة العملاء لتأكيده.
+                    </p>
                 </div>
 
-                <button onclick="sendFinalOrder()" class="w-full bg-[#25D366] text-white py-5 rounded-[22px] font-black text-xl flex items-center justify-center gap-3 shadow-xl hover:bg-[#1fb355] transition-all active:scale-95">
-                    <i class="fab fa-whatsapp text-3xl"></i>
-                    تأكيد وإرسال الطلب
-                </button>
+                <div class="text-center">
+                    <button onclick="clearCart()" class="text-xs font-black text-red-400 hover:text-red-600 transition-colors">
+                        <i class="fas fa-trash-can ml-1"></i> إفراغ السلة والبدء من جديد
+                    </button>
+                </div>
             </div>
         </div>
     </main>
 
     <script>
-        // البيانات والمتغيرات العامة
-        const ADMIN_PHONE = "967775185889"; 
-        let map = null;
-        let marker = null;
-        let discountVal = 0;
-        let couponName = "لا يوجد";
+        // المتغيرات الأساسية
+        const WHATSAPP_NUMBER = "967775185889"; 
+        let map, marker, subtotal = 0, discount = 0, couponUsed = "لا يوجد";
 
-        // تهيئة التطبيق بعد تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            loadCart();
-            setTimeout(initMap, 100);
-        });
+        // تحميل الصفحة
+        window.onload = function() {
+            renderCartItems();
+            initLeafletMap();
+        };
 
-        // إعداد الخريطة
-        function initMap() {
-            const mapElement = document.getElementById('map');
-            
-            if (!mapElement) {
-                console.error('عنصر الخريطة غير موجود');
-                return;
-            }
-            
+        // 1. الخرائط
+        function initLeafletMap() {
             try {
-                // إنشاء الخريطة
-                map = L.map('map').setView([15.3502, 44.2075], 13);
+                // مركز صنعاء الافتراضي
+                const defaultPos = [15.3502, 44.2075];
+                map = L.map('map', { zoomControl: false }).setView(defaultPos, 13);
                 
-                // إضافة طبقة الخريطة
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors'
+                    attribution: '&copy; OpenStreetMap'
                 }).addTo(map);
+
+                marker = L.marker(defaultPos, { draggable: true }).addTo(map);
                 
-                // إنشاء علامة قابلة للسحب
-                marker = L.marker([15.3502, 44.2075], {
-                    draggable: true
-                }).addTo(map);
-                
-                // تحديث حجم الخريطة
-                setTimeout(function() {
-                    map.invalidateSize();
-                }, 100);
-                
-                console.log('تم تحميل الخريطة بنجاح');
-                
-            } catch (error) {
-                console.error('خطأ في تحميل الخريطة:', error);
+                // تحديث حجم الخريطة لتجنب الأخطاء
+                setTimeout(() => map.invalidateSize(), 500);
+            } catch (err) {
+                console.error("Leaflet Load Error: ", err);
             }
         }
 
-        // تحديد الموقع الحالي
         function detectLocation() {
-            if (!navigator.geolocation) {
-                alert('متصفحك لا يدعم تحديد الموقع');
-                return;
-            }
+            if (!navigator.geolocation) return alert("متصفحك لا يدعم تحديد الموقع");
             
-            if (!map || !marker) {
-                alert('الخريطة لم يتم تحميلها بعد');
-                return;
-            }
-            
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    
-                    map.setView([lat, lng], 17);
-                    marker.setLatLng([lat, lng]);
-                    
-                    alert('تم تحديث موقعك على الخريطة');
-                },
-                function(error) {
-                    let message = 'فشل في تحديد الموقع: ';
-                    if (error.code === 1) {
-                        message += 'تم رفض الإذن';
-                    } else if (error.code === 2) {
-                        message += 'الموقع غير متاح';
-                    } else if (error.code === 3) {
-                        message += 'انتهت المهلة';
-                    }
-                    alert(message);
-                }
-            );
+            navigator.geolocation.getCurrentPosition(position => {
+                const { latitude, longitude } = position.coords;
+                const newPos = [latitude, longitude];
+                map.setView(newPos, 17);
+                marker.setLatLng(newPos);
+            }, () => alert("يرجى تفعيل الـ GPS في هاتفك"));
         }
 
-        // تحميل محتويات السلة
-        function loadCart() {
+        // 2. إدارة السلة
+        function renderCartItems() {
             const cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
-            const list = document.getElementById('cart-list');
-            let subtotal = 0;
-
+            const container = document.getElementById('cart-list');
+            const countLabel = document.getElementById('items-count');
+            
+            subtotal = 0;
+            
             if (cart.length === 0) {
-                list.innerHTML = `
+                container.innerHTML = `
                     <div class="text-center py-10">
-                        <i class="fas fa-shopping-basket text-5xl text-gray-100 mb-4 block"></i>
-                        <p class="font-bold text-gray-400">سلتك فارغة حالياً..</p>
-                        <a href="index.html" class="text-blue-600 font-black text-sm underline mt-2 block">اذهب للتسوق</a>
+                        <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-shopping-basket text-gray-200 text-2xl"></i>
+                        </div>
+                        <p class="text-gray-400 font-bold text-sm">السلة فارغة تماماً</p>
+                        <a href="index.html" class="text-blue-600 text-xs font-black underline mt-2 inline-block">تصفح المطاعم</a>
                     </div>`;
-                
-                updateTotals(0, 0, 0);
+                updateBillUI();
                 return;
             }
 
-            list.innerHTML = cart.map((item, index) => {
-                const itemTotal = item.price * item.quantity;
-                subtotal += itemTotal;
-                
+            countLabel.innerText = `${cart.length} أصناف`;
+
+            container.innerHTML = cart.map((item, index) => {
+                const price = parseFloat(item.price) || 0;
+                const qty = parseInt(item.quantity) || 1;
+                const totalItem = price * qty;
+                subtotal += totalItem;
+
                 return `
-                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-2xl border border-gray-100 shadow-sm transition-all hover:bg-white">
-                    <div class="flex gap-4 items-center">
-                        <img src="${item.img || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-xl object-cover border">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 group hover:bg-white hover:shadow-md transition-all">
+                    <div class="flex items-center gap-4">
+                        <img src="${item.img || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-xl object-cover shadow-sm">
                         <div>
-                            <p class="font-black text-gray-800 text-sm">${item.name}</p>
-                            <p class="text-[10px] text-blue-600 font-bold mt-1">
-                                <span class="bg-blue-100 px-2 py-0.5 rounded-md ml-1">الكمية: ${item.quantity}</span>
-                                <span class="text-gray-400">${item.restaurantName || ''}</span>
-                            </p>
+                            <h4 class="font-black text-gray-900 text-sm">${item.name}</h4>
+                            <p class="text-[10px] font-bold text-blue-600">${item.restaurantName || 'مطعم البرق'}</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span class="font-black text-sm text-gray-900">${itemTotal.toLocaleString()} ر.ي</span>
-                        <button onclick="removeItem(${index})" class="w-8 h-8 rounded-full bg-red-50 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">
-                            <i class="fas fa-trash-alt text-xs"></i>
+                    <div class="flex items-center gap-6">
+                        <div class="text-left">
+                            <span class="block text-xs font-black text-gray-900">${totalItem.toLocaleString()} ر.ي</span>
+                            <span class="text-[9px] font-bold text-gray-400">الكمية: ${qty}</span>
+                        </div>
+                        <button onclick="deleteItem(${index})" class="text-gray-300 hover:text-red-500 transition-colors">
+                            <i class="fas fa-times-circle"></i>
                         </button>
                     </div>
                 </div>`;
             }).join('');
 
-            const finalTotal = Math.max(0, subtotal - discountVal);
-            updateTotals(subtotal, discountVal, finalTotal);
+            updateBillUI();
         }
 
-        // تحديث المبالغ
-        function updateTotals(subtotal, discount, total) {
-            document.getElementById('subtotal').textContent = subtotal.toLocaleString() + ' ر.ي';
-            document.getElementById('discount').textContent = discount.toLocaleString() + ' ر.ي';
-            document.getElementById('total-price').textContent = total.toLocaleString() + ' ر.ي';
+        function deleteItem(index) {
+            let cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
+            cart.splice(index, 1);
+            localStorage.setItem('barq_cart', JSON.stringify(cart));
+            renderCartItems();
         }
 
-        // حذف عنصر من السلة
-        function removeItem(index) {
-            const cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
-            if (index >= 0 && index < cart.length) {
-                cart.splice(index, 1);
-                localStorage.setItem('barq_cart', JSON.stringify(cart));
-                loadCart();
+        function clearCart() {
+            if(confirm("هل تريد إفراغ السلة بالكامل؟")) {
+                localStorage.removeItem('barq_cart');
+                renderCartItems();
             }
         }
 
-        // تطبيق كوبون الخصم
+        // 3. الفاتورة والكوبون
         function applyCoupon() {
             const code = document.getElementById('coupon-code').value.trim().toUpperCase();
-            
-            if (code === 'BARQ26') {
-                discountVal = 1000;
-                couponName = 'BARQ26 (1,000 ر.ي)';
-                alert('تم تفعيل خصم 1000 ريال بنجاح ✅');
-            } else if (code === '') {
-                alert('يرجى إدخال كود الخصم');
-                return;
+            if (code === "BARQ26" || code === "ALBARQ") {
+                discount = 1000;
+                couponUsed = code;
+                document.getElementById('discount-row').classList.remove('hidden');
+                document.getElementById('discount-val').innerText = `- 1,000 ر.ي`;
+                alert("تم تفعيل خصم 1000 ريال! ✅");
             } else {
-                discountVal = 0;
-                couponName = 'لا يوجد';
-                alert('الكود غير صحيح ❌');
+                discount = 0;
+                couponUsed = "غير صحيح";
+                document.getElementById('discount-row').classList.add('hidden');
+                alert("عذراً، هذا الكود غير صالح ❌");
             }
-            
-            loadCart();
+            updateBillUI();
         }
 
-        // إرسال الطلب النهائي
+        function updateBillUI() {
+            const finalTotal = Math.max(0, subtotal - discount);
+            document.getElementById('subtotal').innerText = `${subtotal.toLocaleString()} ر.ي`;
+            document.getElementById('total-price').innerHTML = `${finalTotal.toLocaleString()} <small class="text-sm">ر.ي</small>`;
+        }
+
+        // 4. إرسال الطلب (الدمج مع واتساب)
         function sendFinalOrder() {
             const cart = JSON.parse(localStorage.getItem('barq_cart')) || [];
             const phone = document.getElementById('user-phone').value.trim();
             const address = document.getElementById('user-address').value.trim();
-            const totalText = document.getElementById('total-price').textContent;
+            const payMethod = document.querySelector('input[name="payment_method"]:checked').value;
 
-            // التحقق من البيانات
-            if (cart.length === 0) {
-                alert('سلتك فارغة!');
-                return;
-            }
-            
-            if (!phone) {
-                alert('يرجى إدخال رقم الهاتف');
-                return;
-            }
-            
-            if (!address) {
-                alert('يرجى إدخال وصف العنوان');
-                return;
-            }
-            
-            if (!marker) {
-                alert('يرجى الانتظار حتى تحميل الخريطة');
-                return;
-            }
+            if (cart.length === 0) return alert("السلة فارغة، أضف وجبات أولاً!");
+            if (!phone || phone.length < 9) return alert("يرجى إدخال رقم هاتف صحيح");
+            if (!address) return alert("يرجى كتابة وصف للعنوان");
 
-            // الحصول على الإحداثيات
+            // جلب الإحداثيات من العلامة
             const pos = marker.getLatLng();
             const mapLink = `https://www.google.com/maps?q=${pos.lat},${pos.lng}`;
 
-            // بناء رسالة الطلب
-            let message = `*⚡ طلب توصيل جديد - البرق ⚡*\n`;
-            message += `━━━━━━━━━━━━━━━━━━\n`;
-            message += `📞 *رقم العميل:* ${phone}\n`;
-            message += `🏠 *العنوان:* ${address}\n`;
-            message += `━━━━━━━━━━━━━━━━━━\n`;
-            message += `🛒 *الطلبات:*\n\n`;
+            // بناء نص الرسالة
+            let msg = `*⚡ طلب جديدالبرق للتوصيل ⚡*\n`;
+            msg += `━━━━━━━━━━━━━━━━━━\n`;
+            msg += `👤 *رقم الهاتف:* ${phone}\n`;
+            msg += `🏠 *العنوان:* ${address}\n`;
+            msg += `💳 *طريقة الدفع:* ${payMethod}\n`;
+            msg += `━━━━━━━━━━━━━━━━━━\n`;
+            msg += `🛒 *الطلبات:*\n\n`;
 
-            cart.forEach((item, index) => {
-                message += `${index + 1}. *${item.name}* (الكمية: ${item.quantity})\n`;
-                message += `   💰 السعر: ${item.price.toLocaleString()} ر.ي\n`;
-                if (item.restaurantName) {
-                    message += `   🏢 من: ${item.restaurantName}\n`;
-                }
-                message += `\n`;
+            cart.forEach((item, i) => {
+                msg += `${i+1}. *${item.name}*\n`;
+                msg += `   الكمية: (${item.quantity}) - السعر: ${item.price} ر.ي\n`;
+                if(item.restaurantName) msg += `   المطعم: ${item.restaurantName}\n`;
+                msg += ` \n`;
             });
 
-            message += `🎁 *الكوبون:* ${couponName}\n`;
-            message += `✅ *الإجمالي النهائي:* ${totalText}\n`;
-            message += `━━━━━━━━━━━━━━━━━━\n`;
-            message += `📍 *موقع التوصيل:* \n${mapLink}`;
+            msg += `━━━━━━━━━━━━━━━━━━\n`;
+            if (discount > 0) msg += `🎁 *الكوبون:* ${couponUsed} (خصم 1000)\n`;
+            msg += `💰 *الإجمالي النهائي:* ${document.getElementById('total-price').innerText}\n`;
+            msg += `━━━━━━━━━━━━━━━━━━\n`;
+            msg += `📍 *موقع العميل (الخريطة):*\n${mapLink}\n`;
+            msg += `━━━━━━━━━━━━━━━━━━\n`;
+            msg += `*يرجى تأكيد الطلب من قبلكم وبدء التوصيل 🚀*`;
 
-            // إنشاء رابط واتساب
-            const waLink = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(message)}`;
-            
-            // فتح الرابط في نافذة جديدة
-            window.open(waLink, '_blank');
-            
-            // تفريغ السلة بعد الإرسال (اختياري)
-            // localStorage.removeItem('barq_cart');
-            // setTimeout(function() {
-            //     window.location.href = 'index.html';
-            // }, 1000);
+            // توجيه للواتساب
+            const finalUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+            window.open(finalUrl, '_blank');
         }
     </script>
 </body>

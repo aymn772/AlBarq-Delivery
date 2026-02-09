@@ -1,0 +1,275 @@
+/* =================================================================
+        AL-BARQ ULTIMATE PROFESSIONAL STYLESHEET (V5.0)
+=================================================================
+*/
+
+/* 1. التحميل العام والخطوط */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+    --primary-color: #0057FF;         /* الأزرق الملكي */
+    --primary-darker: #0046CC;
+    --primary-alpha: rgba(0, 87, 255, 0.08);
+    --secondary-color: #1A202C;
+    --success-color: #10B981;
+    --danger-color: #EF4444;
+    --warning-color: #F59E0B;
+    --accent-color: #FF6B00;          /* البرتقالي للتنبيهات */
+    --text-color: #1A202C;
+    --text-light-color: #718096;
+    --background-color: #F8FAFC;
+    --background-color-alt: #EDF2F7;
+    --card-background-color: rgba(255, 255, 255, 0.9);
+    --border-color: #E2E8F0;
+    --shadow-color: rgba(0, 87, 255, 0.05);
+    --radius-xl: 30px;
+    --radius-lg: 20px;
+    --radius-md: 12px;
+}
+
+[data-theme="dark"] {
+    --primary-color: #3B82F6;
+    --secondary-color: #0d1117;
+    --text-color: #F7FAFC;
+    --text-light-color: #A0AEC0;
+    --background-color: #0F172A;
+    --background-color-alt: #1E293B;
+    --card-background-color: rgba(30, 41, 59, 0.9);
+    --border-color: #334155;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* 2. الإعدادات الأساسية للهيكل */
+* {
+    margin: 0; padding: 0; box-sizing: border-box;
+    font-family: 'Cairo', sans-serif !important;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    direction: rtl;
+    overflow-x: hidden;
+    transition: background 0.3s, color 0.3s;
+}
+
+/* 3. الهيدر والتنقل (Unified Header) */
+.unified-header {
+    position: sticky; top: 1rem; margin: 0 1rem; z-index: 1000;
+    border-radius: var(--radius-lg); backdrop-filter: blur(16px);
+    background-color: var(--card-background-color);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px var(--shadow-color);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link {
+    font-weight: 700; color: var(--text-light-color);
+    padding: 10px 18px; border-radius: var(--radius-md);
+    transition: all 0.3s; text-decoration: none; display: inline-block;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--primary-color);
+    background-color: var(--primary-alpha);
+}
+
+.nav-link.active { position: relative; }
+.nav-link.active::after {
+    content: ""; position: absolute; bottom: 0; left: 30%; right: 30%;
+    height: 3px; background: var(--accent-color); border-radius: 10px;
+}
+
+/* 4. الأزرار والأيقونات (Icon Buttons) */
+.icon-btn {
+    background-color: transparent; border: none; color: var(--text-color);
+    width: 44px; height: 44px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s ease-in-out;
+}
+
+.icon-btn:hover {
+    background-color: var(--primary-alpha);
+    color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.cart-wrapper { position: relative; }
+.cart-count {
+    position: absolute; top: -2px; right: -2px;
+    background-color: var(--accent-color); color: white;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800; border: 2px solid var(--card-background-color);
+}
+
+/* 5. البحث المتطور (Search UI) */
+.search-wrapper {
+    position: relative; max-width: 700px; margin: 0 auto;
+}
+
+#search-input, .search-box {
+    width: 100%; padding: 18px 25px; border-radius: 30px;
+    border: 1px solid var(--border-color); background: var(--card-background-color);
+    color: var(--text-color); font-weight: 700; outline: none;
+    box-shadow: 0 4px 15px var(--shadow-color); transition: 0.3s;
+}
+
+#search-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 8px 25px var(--primary-alpha);
+}
+
+/* 6. كروت المطاعم والمنيو (Restaurant & Menu Cards) */
+.res-card, .glass-card {
+    background-color: var(--card-background-color);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(15px); border-radius: var(--radius-xl);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden; cursor: pointer;
+}
+
+.res-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 30px 60px rgba(0, 87, 255, 0.12);
+}
+
+.image-container {
+    width: 100%; height: 200px; overflow: hidden; position: relative;
+}
+
+.image-container img {
+    width: 100%; height: 100%; object-fit: cover; transition: 0.6s;
+}
+
+.res-card:hover .image-container img { transform: scale(1.1); }
+
+/* 7. لوحة التحكم (Admin Panel & Sidebar) */
+.admin-sidebar {
+    position: fixed; top: 0; right: 0; width: 280px; height: 100vh;
+    background: var(--card-background-color); border-left: 1px solid var(--border-color);
+    z-index: 1100; transition: transform 0.3s ease;
+}
+
+.sidebar-link {
+    display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+    margin: 8px 15px; border-radius: 14px; font-weight: 700;
+    color: var(--text-light-color); transition: 0.3s; text-decoration: none;
+}
+
+.sidebar-link:hover, .sidebar-link.active {
+    background: var(--primary-alpha); color: var(--primary-color);
+}
+
+.admin-main-content {
+    margin-right: 280px; padding: 40px; transition: 0.3s;
+}
+
+.admin-input {
+    width: 100%; padding: 14px; border-radius: 12px;
+    border: 1px solid var(--border-color); background: var(--background-color);
+    font-weight: 600; transition: 0.3s; outline: none;
+}
+
+.admin-input:focus { border-color: var(--primary-color); }
+
+/* 8. الجداول (Tables Styling) */
+.custom-table {
+    width: 100%; border-collapse: separate; border-spacing: 0 10px;
+}
+
+.custom-table th {
+    padding: 15px; color: var(--text-light-color); text-align: right; font-weight: 800;
+}
+
+.custom-table tr {
+    background: var(--card-background-color); transition: 0.3s;
+}
+
+.custom-table td {
+    padding: 20px 15px; border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.custom-table td:first-child { border-right: 1px solid var(--border-color); border-radius: 0 15px 15px 0; }
+.custom-table td:last-child { border-left: 1px solid var(--border-color); border-radius: 15px 0 0 15px; }
+
+/* 9. السلة (Cart UI) */
+.quantity-control {
+    display: flex; align-items: center; gap: 15px;
+    background: var(--background-color-alt); padding: 8px 15px;
+    border-radius: 12px; width: fit-content;
+}
+
+.qty-btn {
+    background: white; border: none; width: 28px; height: 28px;
+    border-radius: 8px; font-weight: 900; cursor: pointer; transition: 0.2s;
+}
+
+.qty-btn:hover { background: var(--primary-color); color: white; }
+
+/* 10. الحركات (Animations) */
+@keyframes reveal {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal-on-load {
+    animation: reveal 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.shake-effect { animation: shake 0.5s ease-in-out; }
+
+/* 11. صفحة الدخول (Login UI) */
+.login-card {
+    max-width: 450px; width: 90%; padding: 40px;
+    background: var(--card-background-color); border-radius: var(--radius-xl);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 1px solid var(--border-color);
+}
+
+/* 12. التذييل (Footer) */
+.main-footer {
+    background: #020617; color: white; padding: 80px 6% 40px;
+}
+
+.footer-heading {
+    font-weight: 900; margin-bottom: 25px; border-right: 4px solid var(--primary-color);
+    padding-right: 15px;
+}
+
+.footer-link {
+    color: #94A3B8; text-decoration: none; transition: 0.3s; display: block;
+    margin-bottom: 12px; font-weight: 600;
+}
+
+.footer-link:hover { color: var(--primary-color); transform: translateX(-5px); }
+
+/* 13. Responsive Design */
+@media (max-width: 992px) {
+    .admin-main-content { margin-right: 0; padding: 20px; }
+    .admin-sidebar { transform: translateX(100%); }
+    .admin-sidebar.open { transform: translateX(0); }
+}
+
+@media (max-width: 768px) {
+    .unified-header { margin: 0.5rem; }
+    .res-grid { grid-template-columns: 1fr; }
+    .login-card { padding: 25px; }
+}
+
+/* 14. التنسيقات المتنوعة (Utilities) */
+.badge-success { background: #DCFCE7; color: #166534; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; }
+.badge-danger { background: #FEE2E2; color: #991B1B; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; }
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--background-color); }
+::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 10px; }
+
+/* نهاية الملف */
