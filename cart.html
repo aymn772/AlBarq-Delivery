@@ -216,7 +216,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div class="input-group">
                         <label>رقم هاتف المستلم</label>
-                        <input type="tel" id="user-phone" placeholder="مثال: 771234567" class="fancy-input">
+                        <input type="tel" id="user-phone" placeholder="مثال: 77" class="fancy-input">
                     </div>
                     <div class="input-group">
                         <label>وصف العنوان بدقة</label>
@@ -271,18 +271,27 @@
                     <div class="input-group">
                         <label>اختر الساعة المناسبة لك</label>
                         <select id="scheduled-time" class="fancy-input bg-white">
-                            <option value="12:00 م">12:00 مساءً</option>
-                            <option value="01:00 م">01:00 مساءً</option>
-                            <option value="02:00 م">02:00 مساءً</option>
-                            <option value="03:00 م">03:00 مساءً</option>
-                            <option value="04:00 م">04:00 مساءً</option>
-                            <option value="05:00 م">05:00 مساءً</option>
-                            <option value="06:00 م">06:00 مساءً</option>
-                            <option value="07:00 م">07:00 مساءً</option>
-                            <option value="08:00 م">08:00 مساءً</option>
-                            <option value="09:00 م">09:00 مساءً</option>
-                            <option value="10:00 م">10:00 مساءً</option>
-                            <option value="11:00 م">11:00 مساءً</option>
+                            <optgroup label="الفترة الصباحية">
+                                <option value="08:00 ص">08:00 صباحاً</option>
+                                <option value="09:00 ص">09:00 صباحاً</option>
+                                <option value="10:00 ص">10:00 صباحاً</option>
+                                <option value="11:00 ص">11:00 صباحاً</option>
+                            </optgroup>
+                            
+                            <optgroup label="الفترة المسائية">
+                                <option value="12:00 م" selected>12:00 مساءً (ظهراً)</option>
+                                <option value="01:00 م">01:00 مساءً</option>
+                                <option value="02:00 م">02:00 مساءً</option>
+                                <option value="03:00 م">03:00 مساءً</option>
+                                <option value="04:00 م">04:00 مساءً</option>
+                                <option value="05:00 م">05:00 مساءً</option>
+                                <option value="06:00 م">06:00 مساءً</option>
+                                <option value="07:00 م">07:00 مساءً</option>
+                                <option value="08:00 م">08:00 مساءً</option>
+                                <option value="09:00 م">09:00 مساءً</option>
+                                <option value="10:00 م">10:00 مساءً</option>
+                                <option value="11:00 م">11:00 مساءً</option>
+                            </optgroup>
                         </select>
                     </div>
                 </div>
@@ -462,22 +471,51 @@
         }
 
         function calculateDeliveryFee(latlng) {
-            const R = 6371;
-            const dLat = (latlng.lat - BARQ_CONFIG.storeCoords.lat) * Math.PI / 180;
-            const dLon = (latlng.lng - BARQ_CONFIG.storeCoords.lng) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(BARQ_CONFIG.storeCoords.lat * Math.PI / 180) * Math.cos(latlng.lat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-            const distance = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-            appState.totalDistance = distance;
-            let finalFee = 0;
-            let rateText = "";
-            if (distance <= 1) { finalFee = BARQ_CONFIG.pricing.base; rateText = "سعر ثابت"; }
-            else if (distance <= 3) { finalFee = distance * BARQ_CONFIG.pricing.midRate; rateText = "300 ر.ي / كم"; }
-            else if (distance <= 5) { finalFee = distance * BARQ_CONFIG.pricing.longRate; rateText = "250 ر.ي / كم"; }
-            else { finalFee = distance * BARQ_CONFIG.pricing.superRate; rateText = "200 ر.ي / كم"; }
-            appState.deliveryFee = Math.ceil(finalFee / 50) * 50;
-            document.getElementById('dist-info').innerText = `المسافة: ${distance.toFixed(2)} كم | ${rateText}`;
-            updateFinalDisplay();
-        }
+    const R = 6371; // نصف قطر الأرض بالكيلومتر
+    const dLat = (latlng.lat - BARQ_CONFIG.storeCoords.lat) * Math.PI / 180;
+    const dLon = (latlng.lng - BARQ_CONFIG.storeCoords.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + 
+              Math.cos(BARQ_CONFIG.storeCoords.lat * Math.PI / 180) * Math.cos(latlng.lat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    
+    const distance = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    appState.totalDistance = distance;
+
+    let finalFee = 0;
+    let rateText = "";
+
+    // تطبيق نظام الشرائح الجديد الخاص بك:
+    if (distance <= 1) { 
+        // أقل من 1 كم = 400 ريال (سعر ثابت)
+        finalFee = 400; 
+        rateText = "سعر ثابت";
+    } 
+    else if (distance <= 2.99) { 
+        // من 1 إلى 2 كم (أقل من 3 كم) = 300 ريال للكيلو
+        finalFee = distance * 300; 
+        rateText = "300 ر.ي / كم";
+    } 
+    else if (distance <= 5) { 
+        // من 3 إلى 5 كم = 250 ريال للكيلو
+        finalFee = distance * 250; 
+        rateText = "250 ر.ي / كم";
+    } 
+    else { 
+        // أكثر من 5 كم = 180 ريال للكيلو
+        finalFee = distance * 180; 
+        rateText = "180 ر.ي / كم";
+    }
+
+    // تقريب السعر لأقرب 50 ريال لسهولة التعامل المالي في اليمن
+    appState.deliveryFee = Math.ceil(finalFee / 50) * 50;
+
+    // تحديث الواجهة
+    const distInfoElement = document.getElementById('dist-info');
+    if (distInfoElement) {
+        distInfoElement.innerText = `المسافة: ${distance.toFixed(2)} كم | ${rateText}`;
+    }
+    
+    updateFinalDisplay();
+}
 
         function gpsFetch() {
             if (!navigator.geolocation) return alert("متصفحك لا يدعم الـ GPS");
